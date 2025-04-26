@@ -4,9 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SoulBoard</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌱</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌥️</text></svg>">
     <style>
-        /* Original CSS Preserved */
         :root {
             --primary: #8B93FF;
             --secondary: #FFA1F5;
@@ -43,10 +42,34 @@
         }
 
         h1::before {
-            content: "🌱 ";
+            content: "🌥️ ";
         }
 
-        /* New Search Bar */
+        .tagline {
+            color: #666;
+            font-size: 1.1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .new-post {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #eee;
+            border-radius: 8px;
+            resize: vertical;
+            min-height: 120px;
+            margin-bottom: 1.5rem;
+            font-size: 1rem;
+        }
+
         .search-bar {
             margin: 1rem 0;
             padding: 12px;
@@ -56,16 +79,51 @@
             font-size: 1rem;
         }
 
-        /* Enhanced Mood Selector */
         .mood-selector {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 8px;
-            margin-bottom: 1rem;
+            margin-bottom: 1.5rem;
         }
 
-        /* Rest of original CSS remains unchanged */
-        /* ... (All previous styles preserved exactly) ... */
+        .mood-btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 20px;
+            background: #f0f0f0;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .mood-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .post-btn {
+            background: var(--primary);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1rem;
+            transition: opacity 0.2s;
+        }
+
+        .post-btn:hover {
+            opacity: 0.9;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
     </style>
 </head>
 <body>
@@ -74,17 +132,15 @@
         <p class="tagline">Where your soul speaks without judgment</p>
     </header>
 
-    <input type="text" class="search-bar" placeholder="Search entries... (date, mood, text)" id="searchInput">
-
     <div class="new-post">
-        <textarea placeholder="How's your soul today?"></textarea>
+        <textarea placeholder="What's on your mind today?"></textarea>
+        <input type="text" class="search-bar" placeholder="Search entries... (date, mood, text)" id="searchInput">
         <div class="mood-selector">
             <button class="mood-btn">😊 Happy</button>
             <button class="mood-btn">😐 Meh</button>
             <button class="mood-btn">😢 Sad</button>
             <button class="mood-btn">💡 Inspired</button>
             <button class="mood-btn">🌪 Anxious</button>
-            <!-- New Emotions Added -->
             <button class="mood-btn">😡 Angry</button>
             <button class="mood-btn">😴 Tired</button>
             <button class="mood-btn">🎉 Celebratory</button>
@@ -92,12 +148,28 @@
         <button class="post-btn">Add to SoulBoard</button>
     </div>
 
-    <!-- Rest of original HTML preserved -->
+    <div id="feed">
+        <!-- Posts will appear here -->
+    </div>
+
     <script>
-        // Original Local Storage Logic Preserved
+        // Local storage management
         let entries = JSON.parse(localStorage.getItem('soulboardEntries')) || [];
         
-        // New Search Functionality
+        // Daily quotes
+        const quotes = [
+            "Be yourself; everyone else is already taken. - Oscar Wilde",
+            "You do not have to be good. - Mary Oliver",
+            "Nothing can bring you peace but yourself. - Ralph Waldo Emerson",
+            "What is your body telling you right now?",
+            "What emotion needs your attention today?"
+        ];
+
+        // Initialize
+        document.getElementById('daily-quote').textContent = 
+            quotes[Math.floor(Math.random() * quotes.length)];
+
+        // Search functionality
         document.getElementById('searchInput').addEventListener('input', (e) => {
             const query = e.target.value.toLowerCase();
             document.querySelectorAll('.post').forEach(post => {
@@ -106,20 +178,44 @@
             });
         });
 
-        // Enhanced Mood Colors (Original + New)
-        const moodColors = {
-            '😊': '#FFFBEB', '😐': '#F0F4FF', '😢': '#FFF5F5',
-            '💡': '#F0FFF4', '🌪': '#F8F9FF', '😡': '#FFEBEE',
-            '😴': '#F0F8FF', '🎉': '#FFF0F5'
-        };
-
-        // Original Post Logic Preserved
+        // Post functionality
         document.querySelector('.post-btn').addEventListener('click', () => {
-            // Original implementation preserved
+            const text = document.querySelector('textarea').value.trim();
+            if (!text) return;
+
+            const date = new Date();
+            const entry = {
+                text,
+                date: date.toISOString(),
+                mood: selectedMood || '📝'
+            };
+
+            entries.unshift(entry);
+            localStorage.setItem('soulboardEntries', JSON.stringify(entries));
+            
+            addPostToFeed(entry);
+            document.querySelector('textarea').value = '';
         });
 
-        // Rest of original JavaScript remains unchanged
-        // ... (All previous functionality preserved) ...
+        function addPostToFeed(entry) {
+            const post = document.createElement('div');
+            post.className = 'post';
+            post.innerHTML = `
+                <div class="post-date">${new Date(entry.date).toLocaleDateString('en-US', { 
+                    weekday: 'short', 
+                    month: 'short', 
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                })}</div>
+                <div class="post-mood">${entry.mood}</div>
+                <div class="post-content">${entry.text}</div>
+            `;
+            document.getElementById('feed').prepend(post);
+        }
+
+        // Load existing entries
+        entries.forEach(entry => addPostToFeed(entry));
     </script>
 </body>
 </html>
