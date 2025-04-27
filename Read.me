@@ -6,7 +6,7 @@
     <title>SoulBoard</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌥️</text></svg>">
     <style>
-        /* All CSS remains the same as before */
+        /* All previous CSS remains unchanged */
         :root {
             --primary: #8B93FF;
             --secondary: #FFA1F5;
@@ -283,7 +283,6 @@
     </style>
 </head>
 <body>
-    <!-- Vault Elements -->
     <div class="vault-access" onclick="toggleVault()">🔒 Vault</div>
     <div class="vault-modal" id="vaultModal">
         <div class="vault-tabs">
@@ -293,7 +292,6 @@
         <div id="vaultContent"></div>
     </div>
 
-    <!-- Original Content -->
     <header>
         <h1>SoulBoard</h1>
         <p class="tagline">Where your soul speaks without judgment</p>
@@ -323,11 +321,7 @@
     </div>
 
     <script>
-        // Original Journal Functionality
-        let selectedMood = null;
         let entries = JSON.parse(localStorage.getItem('soulboardEntries')) || [];
-        
-        // Vault Functionality
         let vault = JSON.parse(localStorage.getItem('soulboardVault')) || {
             deleted: [],
             hidden: []
@@ -335,17 +329,17 @@
         let currentPIN = null;
         let currentSection = 'deleted';
 
+        // Vault Functions
         function toggleVault() {
             const vaultModal = document.getElementById('vaultModal');
             if (vaultModal.style.display === 'block') {
                 closeVault();
-                return;
+            } else {
+                showVault();
             }
-            showVault();
         }
 
         function showVault() {
-            currentPIN = null;
             const storedPIN = localStorage.getItem('soulboardPIN');
             if (storedPIN) {
                 const enteredPIN = prompt("Enter your 4-digit PIN:");
@@ -353,7 +347,6 @@
                     alert("Incorrect PIN");
                     return;
                 }
-                currentPIN = enteredPIN;
             }
             document.getElementById('vaultModal').style.display = 'block';
             updateVaultDisplay();
@@ -361,7 +354,6 @@
 
         function closeVault() {
             document.getElementById('vaultModal').style.display = 'none';
-            currentPIN = null;
         }
 
         function showVaultSection(section) {
@@ -399,15 +391,68 @@
             `).join('');
         }
 
-        // Auto-purge deleted entries after 60 days
-        setInterval(() => {
-            const now = Date.now();
-            vault.deleted = vault.deleted.filter(entry => 
-                (now - entry.deletedDate) < 60 * 86400 * 1000
-            );
-            localStorage.setItem('soulboardVault', JSON.stringify(vault));
-        }, 86400000);
+        // Entry Management
+        function restoreEntry(index, section) {
+            const entry = vault[section].splice(index, 1)[0];
+            entries.unshift({...entry, date: Date.now()});
+            saveAndRefresh();
+        }
 
+        function permanentlyDelete(index) {
+            vault.deleted.splice(index, 1);
+            saveAndRefresh();
+        }
+
+        function deletePost(index) {
+            const entry = entries.splice(index, 1)[0];
+            entry.deletedDate = Date.now();
+            vault.deleted.push(entry);
+            saveAndRefresh();
+        }
+
+        function hidePost(index) {
+            const entry = entries.splice(index, 1)[0];
+            vault.hidden.push(entry);
+            saveAndRefresh();
+        }
+
+        function saveAndRefresh() {
+            localStorage.setItem('soulboardEntries', JSON.stringify(entries));
+            localStorage.setItem('soulboardVault', JSON.stringify(vault));
+            refreshFeed();
+            updateVaultDisplay();
+        }
+
+        // Feed Management
+        function refreshFeed() {
+            const feed = document.getElementById('feed');
+            feed.innerHTML = '';
+            entries.slice().reverse().forEach((entry, index) => {
+                addPostToFeed(entry, index);
+            });
+            document.getElementById('empty-state').style.display = 
+                entries.length ? 'none' : 'block';
+        }
+
+        function addPostToFeed(entry, index) {
+            const post = document.createElement('div');
+            post.className = 'post';
+            post.innerHTML = `
+                <div class="post-date">${new Date(entry.date).toLocaleDateString('en-US', { 
+                    weekday: 'short', 
+                    month: 'short', 
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                })}</div>
+                <div class="post-mood">${entry.mood}</div>
+                <div class="post-content">${entry.text}</div>
+            `;
+            createPostMenu(post, index);
+            document.getElementById('feed').prepend(post);
+        }
+
+        // Menu System
         function closeAllMenus() {
             document.querySelectorAll('.menu-options').forEach(menu => {
                 menu.style.display = 'none';
@@ -431,100 +476,32 @@
                 <div class="menu-option" onclick="deletePost(${index})">Delete</div>
                 <div class="menu-option" onclick="hidePost(${index})">Hide</div>
             `;
-            
-            options.onclick = (e) => {
-                e.stopPropagation();
-            };
-
+            options.onclick = (e) => e.stopPropagation();
             postElement.appendChild(menu);
             postElement.appendChild(options);
         }
 
+        // Event Listeners
         document.addEventListener('click', (e) => {
             if (!e.target.closest('.menu-options') && !e.target.closest('.post-menu')) {
                 closeAllMenus();
             }
         });
 
-        function deletePost(index) {
-            const entry = entries.splice(index, 1)[0];
-            entry.deletedDate = Date.now();
-            vault.deleted.push(entry);
-            saveAndRefresh();
-        }
-
-        function hidePost(index) {
-            const entry = entries.splice(index, 1)[0];
-            vault.hidden.push(entry);
-            saveAndRefresh();
-        }
-
-        // FIXED: Restore/unhide functionality
-        function restoreEntry(index, section) {
-            const entry = vault[section].splice(index, 1)[0];
-            entries.unshift(entry);
-            saveAndRefresh();
-            updateVaultDisplay();
-        }
-
-        function permanentlyDelete(index) {
-            vault.deleted.splice(index, 1);
-            localStorage.setItem('soulboardVault', JSON.stringify(vault));
-            updateVaultDisplay();
-        }
-
-        function saveAndRefresh() {
-            localStorage.setItem('soulboardEntries', JSON.stringify(entries));
-            localStorage.setItem('soulboardVault', JSON.stringify(vault));
-            refreshFeed();
-        }
-
-        function refreshFeed() {
-            const feed = document.getElementById('feed');
-            feed.innerHTML = '';
-            if (entries.length === 0) {
-                document.getElementById('empty-state').style.display = 'block';
-            } else {
-                document.getElementById('empty-state').style.display = 'none';
-                entries.forEach((entry, index) => addPostToFeed(entry, index));
-            }
-        }
-
-        function addPostToFeed(entry, index) {
-            const post = document.createElement('div');
-            post.className = 'post';
-            post.innerHTML = `
-                <div class="post-date">${new Date(entry.date).toLocaleDateString('en-US', { 
-                    weekday: 'short', 
-                    month: 'short', 
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                })}</div>
-                <div class="post-mood">${entry.mood}</div>
-                <div class="post-content">${entry.text}</div>
-            `;
-            createPostMenu(post, index);
-            const feed = document.getElementById('feed');
-            feed.insertBefore(post, feed.firstChild);
-        }
-
-        // PIN Initialization
-        if (!localStorage.getItem('soulboardPIN')) {
-            const newPIN = prompt("Set a 4-digit PIN for vault access:");
-            if (newPIN && newPIN.length === 4 && !isNaN(newPIN)) {
-                localStorage.setItem('soulboardPIN', newPIN);
-            }
-        }
-
         window.onclick = function(event) {
             if (event.target.className === 'vault-modal') {
                 closeVault();
             }
-            closeAllMenus();
         }
 
-        // Initial Load
+        // Initialization
+        if (!localStorage.getItem('soulboardPIN')) {
+            const newPIN = prompt("Set a 4-digit PIN for vault access:");
+            if (newPIN?.length === 4 && !isNaN(newPIN)) {
+                localStorage.setItem('soulboardPIN', newPIN);
+            }
+        }
+
         refreshFeed();
     </script>
 </body>
