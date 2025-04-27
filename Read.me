@@ -6,7 +6,7 @@
     <title>SoulBoard</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌥️</text></svg>">
     <style>
-        /* Existing styles preserved */
+        /* ========== ORIGINAL STYLES ========== */
         :root {
             --primary: #8B93FF;
             --secondary: #FFA1F5;
@@ -158,7 +158,6 @@
             line-height: 1.5;
         }
 
-        /* New Additions */
         .loader {
             width: 18px;
             height: 18px;
@@ -190,14 +189,55 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
+
+        /* ========== INVESTOR ADDITIONS ========== */
+        .pro-banner {
+            background: #FF6B6B;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            font-size: 0.9rem;
+            border-radius: 8px;
+            margin: -10px -20px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .market-footer {
+            text-align: center;
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 3rem;
+            padding: 2rem 0;
+            border-top: 1px solid #eee;
+        }
+
+        .founder-watermark {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            color: #aaa;
+            font-size: 0.8rem;
+            background: rgba(255,255,255,0.9);
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
+    <!-- PRO BANNER -->
+    <div class="pro-banner">
+        🚀 PRO Version Launching Q4 2025: 3-Word Encrypted Vault & AI Insights
+    </div>
+
+    <!-- ORIGINAL HEADER -->
     <header>
         <h1>SoulBoard</h1>
         <p class="tagline">Where your soul speaks without judgment</p>
     </header>
 
+    <!-- ORIGINAL CONTENT -->
     <div class="new-post">
         <textarea placeholder="What's on your mind today?"></textarea>
         <input type="text" class="search-bar" placeholder="Search entries... (date, mood, text)" id="searchInput">
@@ -221,6 +261,17 @@
         </div>
     </div>
 
+    <!-- MARKET FOOTER -->
+    <div class="market-footer">
+        Addressing the $26B mental health tech market
+    </div>
+
+    <!-- FOUNDER WATERMARK -->
+    <div class="founder-watermark">
+        Built by Kenechukwu Vincent Ek
+    </div>
+
+    <!-- ORIGINAL SCRIPT -->
     <script>
         // Mood selection
         let selectedMood = null;
