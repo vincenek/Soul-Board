@@ -6,7 +6,6 @@
     <title>SoulBoard</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌥️</text></svg>">
     <style>
-        /* All original CSS remains unchanged */
         :root {
             --primary: #8B93FF;
             --secondary: #FFA1F5;
@@ -284,7 +283,7 @@
 </head>
 <body>
     <!-- Vault Elements -->
-    <div class="vault-access" onclick="showVault()">🔒 Vault</div>
+    <div class="vault-access" onclick="toggleVault()">🔒 Vault</div>
     <div class="vault-modal" id="vaultModal">
         <div class="vault-tabs">
             <button class="vault-tab-btn active" onclick="showVaultSection('deleted')">Deleted (60d)</button>
@@ -333,12 +332,16 @@
             hidden: []
         };
         let currentPIN = null;
+        let currentSection = 'deleted';
 
-        // NEW: Function to close all menus
-        function closeAllMenus() {
-            document.querySelectorAll('.menu-options').forEach(menu => {
-                menu.style.display = 'none';
-            });
+        // NEW: Function to toggle vault visibility
+        function toggleVault() {
+            const vaultModal = document.getElementById('vaultModal');
+            if (vaultModal.style.display === 'block') {
+                closeVault();
+                return;
+            }
+            showVault();
         }
 
         function showVault() {
@@ -399,7 +402,14 @@
             localStorage.setItem('soulboardVault', JSON.stringify(vault));
         }, 86400000);
 
-        // UPDATED Post menu functionality
+        // Function to close all menus
+        function closeAllMenus() {
+            document.querySelectorAll('.menu-options').forEach(menu => {
+                menu.style.display = 'none';
+            });
+        }
+
+        // Post menu functionality
         function createPostMenu(postElement, index) {
             const menu = document.createElement('div');
             menu.className = 'post-menu';
@@ -408,7 +418,7 @@
                 e.stopPropagation();
                 closeAllMenus();
                 const options = postElement.querySelector('.menu-options');
-                options.style.display = 'block';
+                options.style.display = options.style.display === 'block' ? 'none' : 'block';
             };
 
             const options = document.createElement('div');
@@ -426,7 +436,7 @@
             postElement.appendChild(options);
         }
 
-        // NEW: Document-wide click listener
+        // Document-wide click listener
         document.addEventListener('click', (e) => {
             if (!e.target.closest('.menu-options') && !e.target.closest('.post-menu')) {
                 closeAllMenus();
@@ -508,7 +518,7 @@
             }
         }
 
-        // Modified window.onclick handler
+        // Close vault when clicking outside
         window.onclick = function(event) {
             if (event.target.className === 'vault-modal') {
                 closeVault();
