@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+    <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -134,7 +134,6 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
             animation: slideUp 0.5s ease-out;
             transition: box-shadow 0.3s, transform 0.2s;
-            position: relative;
         }
 
         .post:hover {
@@ -159,6 +158,7 @@
             line-height: 1.5;
         }
 
+        /* New Additions */
         .loader {
             width: 18px;
             height: 18px;
@@ -175,98 +175,6 @@
             color: #888;
             padding: 2rem;
             display: none;
-        }
-
-        /* New Vault Styles */
-        .vault-access {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: var(--primary);
-            color: white;
-            padding: 12px 20px;
-            border-radius: 25px;
-            cursor: pointer;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            z-index: 100;
-        }
-
-        .vault-modal {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-            z-index: 1000;
-            max-width: 90%;
-        }
-
-        .vault-tabs {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .vault-tab-btn {
-            background: none;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-
-        .vault-tab-btn.active {
-            background: var(--primary);
-            color: white;
-        }
-
-        .vault-entry {
-            background: var(--background);
-            padding: 1rem;
-            border-radius: 8px;
-            margin-bottom: 1rem;
-        }
-
-        /* Context Menu Styles */
-        .post-menu {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-            cursor: pointer;
-            padding: 4px;
-            border-radius: 50%;
-            transition: background 0.2s;
-        }
-
-        .post-menu:hover {
-            background: rgba(0,0,0,0.05);
-        }
-
-        .menu-options {
-            position: absolute;
-            top: 2rem;
-            right: 0;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            padding: 0.5rem;
-            z-index: 10;
-            display: none;
-        }
-
-        .menu-option {
-            padding: 0.5rem 1rem;
-            white-space: nowrap;
-            cursor: pointer;
-            border-radius: 4px;
-        }
-
-        .menu-option:hover {
-            background: var(--background);
         }
 
         @keyframes fadeIn {
@@ -313,165 +221,40 @@
         </div>
     </div>
 
-    <!-- Vault Elements -->
-    <div class="vault-access" onclick="showVault()">🔒 Vault</div>
-    <div class="vault-modal" id="vaultModal">
-        <div class="vault-tabs">
-            <button class="vault-tab-btn active" onclick="showVaultSection('deleted')">Deleted (60d)</button>
-            <button class="vault-tab-btn" onclick="showVaultSection('hidden')">Hidden</button>
-        </div>
-        <div id="vaultContent"></div>
-    </div>
-
     <script>
-        // Original Journal Functionality
+        // Mood selection
         let selectedMood = null;
-        let entries = JSON.parse(localStorage.getItem('soulboardEntries')) || [];
-        
-        // New Vault Functionality
-        let vault = JSON.parse(localStorage.getItem('soulboardVault')) || {
-            deleted: [],
-            hidden: []
-        };
-        let currentPIN = localStorage.getItem('soulboardPIN') || null;
-        let currentSection = 'deleted';
-
-        // Enhanced Post Creation with Menu
-        function addPostToFeed(entry, index) {
-            const post = document.createElement('div');
-            post.className = 'post';
-            post.innerHTML = `
-                <div class="post-date">${new Date(entry.date).toLocaleDateString('en-US', { 
-                    weekday: 'short', 
-                    month: 'short', 
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                })}</div>
-                <div class="post-mood">${entry.mood}</div>
-                <div class="post-content">${entry.text}</div>
-                <div class="post-menu">⋯</div>
-                <div class="menu-options">
-                    <div class="menu-option" onclick="deletePost(${index})">Delete</div>
-                    <div class="menu-option" onclick="hidePost(${index})">Hide</div>
-                </div>
-            `;
-            
-            // Menu handling
-            const menu = post.querySelector('.post-menu');
-            const options = post.querySelector('.menu-options');
-            menu.addEventListener('click', (e) => {
-                e.stopPropagation();
-                options.style.display = options.style.display === 'block' ? 'none' : 'block';
+        document.querySelectorAll('.mood-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                selectedMood = btn.textContent;
             });
-
-            document.getElementById('feed').prepend(post);
-        }
-
-        // Vault Functions
-        function showVault() {
-            if (!currentPIN) {
-                currentPIN = prompt("Set a 4-digit vault PIN:");
-                if (!currentPIN || currentPIN.length !== 4) {
-                    alert("Invalid PIN. Must be 4 digits.");
-                    return;
-                }
-                localStorage.setItem('soulboardPIN', currentPIN);
-            }
-            
-            const enteredPIN = prompt("Enter vault PIN:");
-            if (enteredPIN === currentPIN) {
-                document.getElementById('vaultModal').style.display = 'block';
-                updateVaultDisplay();
-            } else {
-                alert("Incorrect PIN");
-            }
-        }
-
-        function showVaultSection(section) {
-            currentSection = section;
-            document.querySelectorAll('.vault-tab-btn').forEach(btn => {
-                btn.classList.toggle('active', btn.textContent.includes(section));
-            });
-            updateVaultDisplay();
-        }
-
-        function updateVaultDisplay() {
-            const contentDiv = document.getElementById('vaultContent');
-            contentDiv.innerHTML = vault[currentSection].map((entry, index) => `
-                <div class="vault-entry">
-                    <div class="post-date">${new Date(entry.date).toLocaleString()}</div>
-                    <div class="post-mood">${entry.mood}</div>
-                    <div class="post-content">${entry.text}</div>
-                    ${currentSection === 'deleted' ? `
-                        <button onclick="restoreEntry(${index})">Restore</button>
-                        <button onclick="permanentlyDelete(${index})">Delete Forever</button>
-                    ` : `
-                        <button onclick="unhideEntry(${index})">Unhide</button>
-                    `}
-                </div>
-            `).join('');
-        }
-
-        // Post Management
-        function deletePost(index) {
-            const entry = entries.splice(index, 1)[0];
-            entry.deletedDate = Date.now();
-            vault.deleted.unshift(entry);
-            saveData();
-            refreshFeed();
-        }
-
-        function hidePost(index) {
-            const entry = entries.splice(index, 1)[0];
-            vault.hidden.unshift(entry);
-            saveData();
-            refreshFeed();
-        }
-
-        function restoreEntry(index) {
-            const entry = vault[currentSection].splice(index, 1)[0];
-            entries.unshift(entry);
-            saveData();
-            refreshFeed();
-            updateVaultDisplay();
-        }
-
-        function unhideEntry(index) {
-            restoreEntry(index);
-        }
-
-        function permanentlyDelete(index) {
-            vault.deleted.splice(index, 1);
-            saveData();
-            updateVaultDisplay();
-        }
-
-        // Enhanced Save Function
-        function saveData() {
-            localStorage.setItem('soulboardEntries', JSON.stringify(entries));
-            localStorage.setItem('soulboardVault', JSON.stringify(vault));
-        }
-
-        // Auto-purge Old Entries
-        setInterval(() => {
-            const now = Date.now();
-            vault.deleted = vault.deleted.filter(entry => 
-                (now - entry.deletedDate) < 60 * 86400 * 1000
-            );
-            saveData();
-        }, 86400000);
-
-        // Close menus when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('.menu-options') && !e.target.closest('.post-menu')) {
-                document.querySelectorAll('.menu-options').forEach(menu => {
-                    menu.style.display = 'none';
-                });
-            }
         });
 
-        // Original Functions with Enhancements
+        // Local storage management
+        let entries = JSON.parse(localStorage.getItem('soulboardEntries')) || [];
+        
+        // Update empty state visibility
+        function updateEmptyState() {
+            document.getElementById('empty-state').style.display = 
+                entries.length > 0 ? 'none' : 'block';
+        }
+
+        // Debounced search functionality
+        let searchTimeout;
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                const query = e.target.value.toLowerCase();
+                document.querySelectorAll('.post').forEach(post => {
+                    const text = post.innerText.toLowerCase();
+                    post.style.display = text.includes(query) ? 'block' : 'none';
+                });
+            }, 300);
+        });
+
+        // Post functionality with loading state
         document.querySelector('.post-btn').addEventListener('click', async () => {
             const btn = document.querySelector('.post-btn');
             const originalText = btn.innerHTML;
@@ -489,9 +272,9 @@
                 };
 
                 entries.unshift(entry);
-                saveData();
-                refreshFeed();
+                localStorage.setItem('soulboardEntries', JSON.stringify(entries));
                 
+                addPostToFeed(entry);
                 document.querySelector('textarea').value = '';
                 selectedMood = null;
                 document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
@@ -501,9 +284,26 @@
             }
         });
 
-        // Initial Load
-        entries = entries.sort((a, b) => new Date(b.date) - new Date(a.date));
-        refreshFeed();
+        function addPostToFeed(entry) {
+            const post = document.createElement('div');
+            post.className = 'post';
+            post.innerHTML = `
+                <div class="post-date">${new Date(entry.date).toLocaleDateString('en-US', { 
+                    weekday: 'short', 
+                    month: 'short', 
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                })}</div>
+                <div class="post-mood">${entry.mood}</div>
+                <div class="post-content">${entry.text}</div>
+            `;
+            const feed = document.getElementById('feed');
+            feed.insertBefore(post, feed.firstChild);
+        }
+
+        // Load existing entries in correct order
+        entries.slice().reverse().forEach(entry => addPostToFeed(entry));
         updateEmptyState();
     </script>
 </body>
