@@ -6,7 +6,7 @@
     <title>SoulBoard</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌥️</text></svg>">
     <style>
-        /* Original Styles (Preserved) */
+        /* All original CSS remains unchanged */
         :root {
             --primary: #8B93FF;
             --secondary: #FFA1F5;
@@ -177,7 +177,6 @@
             display: none;
         }
 
-        /* New Vault Styles (Added) */
         .vault-access {
             position: fixed;
             bottom: 20px;
@@ -231,7 +230,6 @@
             margin-bottom: 1rem;
         }
 
-        /* Context Menu Styles */
         .post-menu {
             position: absolute;
             top: 1rem;
@@ -336,6 +334,13 @@
         };
         let currentPIN = null;
 
+        // NEW: Function to close all menus
+        function closeAllMenus() {
+            document.querySelectorAll('.menu-options').forEach(menu => {
+                menu.style.display = 'none';
+            });
+        }
+
         function showVault() {
             currentPIN = null;
             const storedPIN = localStorage.getItem('soulboardPIN');
@@ -394,15 +399,16 @@
             localStorage.setItem('soulboardVault', JSON.stringify(vault));
         }, 86400000);
 
-        // Post menu functionality
+        // UPDATED Post menu functionality
         function createPostMenu(postElement, index) {
             const menu = document.createElement('div');
             menu.className = 'post-menu';
             menu.innerHTML = '⋯';
             menu.onclick = (e) => {
                 e.stopPropagation();
+                closeAllMenus();
                 const options = postElement.querySelector('.menu-options');
-                options.style.display = options.style.display === 'block' ? 'none' : 'block';
+                options.style.display = 'block';
             };
 
             const options = document.createElement('div');
@@ -412,9 +418,20 @@
                 <div class="menu-option" onclick="hidePost(${index})">Hide</div>
             `;
             
+            options.onclick = (e) => {
+                e.stopPropagation();
+            };
+
             postElement.appendChild(menu);
             postElement.appendChild(options);
         }
+
+        // NEW: Document-wide click listener
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.menu-options') && !e.target.closest('.post-menu')) {
+                closeAllMenus();
+            }
+        });
 
         function deletePost(index) {
             const entry = entries.splice(index, 1)[0];
@@ -464,7 +481,6 @@
             updateEmptyState();
         }
 
-        // Modified post creation with menu
         function addPostToFeed(entry, index) {
             const post = document.createElement('div');
             post.className = 'post';
@@ -492,11 +508,12 @@
             }
         }
 
-        // Close vault when clicking outside
+        // Modified window.onclick handler
         window.onclick = function(event) {
             if (event.target.className === 'vault-modal') {
                 closeVault();
             }
+            closeAllMenus();
         }
 
         // Initial Load
