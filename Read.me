@@ -6,7 +6,7 @@
     <title>SoulBoard</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌥️</text></svg>">
     <style>
-        /* Existing styles preserved */
+        /* Original Styles (Preserved) */
         :root {
             --primary: #8B93FF;
             --secondary: #FFA1F5;
@@ -158,7 +158,6 @@
             line-height: 1.5;
         }
 
-        /* New Additions */
         .loader {
             width: 18px;
             height: 18px;
@@ -177,6 +176,60 @@
             display: none;
         }
 
+        /* New Vault Styles (Added) */
+        .vault-access {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--primary);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+
+        .vault-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            z-index: 1000;
+            max-width: 90%;
+        }
+
+        .vault-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .vault-tab-btn {
+            background: none;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .vault-tab-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .vault-entry {
+            background: var(--background);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
         @keyframes fadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
@@ -193,6 +246,17 @@
     </style>
 </head>
 <body>
+    <!-- New Vault Elements (Added) -->
+    <div class="vault-access" onclick="showVault()">🔒 Vault</div>
+    <div class="vault-modal" id="vaultModal">
+        <div class="vault-tabs">
+            <button class="vault-tab-btn active" onclick="showVaultSection('removed')">Removed (60d)</button>
+            <button class="vault-tab-btn" onclick="showVaultSection('hidden')">Hidden</button>
+        </div>
+        <div id="vaultContent"></div>
+    </div>
+
+    <!-- Original Content (Preserved) -->
     <header>
         <h1>SoulBoard</h1>
         <p class="tagline">Where your soul speaks without judgment</p>
@@ -222,8 +286,10 @@
     </div>
 
     <script>
-        // Mood selection
+        // Original Journal Functionality (Preserved)
         let selectedMood = null;
+        let entries = JSON.parse(localStorage.getItem('soulboardEntries')) || [];
+        
         document.querySelectorAll('.mood-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
@@ -232,16 +298,6 @@
             });
         });
 
-        // Local storage management
-        let entries = JSON.parse(localStorage.getItem('soulboardEntries')) || [];
-        
-        // Update empty state visibility
-        function updateEmptyState() {
-            document.getElementById('empty-state').style.display = 
-                entries.length > 0 ? 'none' : 'block';
-        }
-
-        // Debounced search functionality
         let searchTimeout;
         document.getElementById('searchInput').addEventListener('input', (e) => {
             clearTimeout(searchTimeout);
@@ -254,7 +310,6 @@
             }, 300);
         });
 
-        // Post functionality with loading state
         document.querySelector('.post-btn').addEventListener('click', async () => {
             const btn = document.querySelector('.post-btn');
             const originalText = btn.innerHTML;
@@ -284,7 +339,7 @@
             }
         });
 
-        function addPostToFeed(entry) {
+        function addPostToFeed(entry, index) {
             const post = document.createElement('div');
             post.className = 'post';
             post.innerHTML = `
@@ -297,13 +352,114 @@
                 })}</div>
                 <div class="post-mood">${entry.mood}</div>
                 <div class="post-content">${entry.text}</div>
+                <div class="post-actions">
+                    <button onclick="moveToVault(${index})">Move to Vault</button>
+                </div>
             `;
             const feed = document.getElementById('feed');
             feed.insertBefore(post, feed.firstChild);
         }
 
-        // Load existing entries in correct order
-        entries.slice().reverse().forEach(entry => addPostToFeed(entry));
+        function updateEmptyState() {
+            document.getElementById('empty-state').style.display = 
+                entries.length > 0 ? 'none' : 'block';
+        }
+
+        // New Vault Functionality (Added)
+        let vault = JSON.parse(localStorage.getItem('soulboardVault')) || {
+            removed: [],
+            hidden: []
+        };
+
+        const storedPIN = localStorage.getItem('soulboardPIN');
+        let currentSection = 'removed';
+
+        function showVault() {
+            if (storedPIN) {
+                const enteredPIN = prompt("Enter your 4-digit PIN:");
+                if (enteredPIN !== storedPIN) {
+                    alert("Incorrect PIN");
+                    return;
+                }
+            }
+            document.getElementById('vaultModal').style.display = 'block';
+            updateVaultDisplay();
+        }
+
+        function showVaultSection(section) {
+            currentSection = section;
+            document.querySelectorAll('.vault-tab-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.textContent.includes(section));
+            });
+            updateVaultDisplay();
+        }
+
+        function updateVaultDisplay() {
+            const contentDiv = document.getElementById('vaultContent');
+            contentDiv.innerHTML = vault[currentSection].map((entry, index) => `
+                <div class="vault-entry">
+                    <div class="post-date">${new Date(entry.date).toLocaleDateString()}</div>
+                    <div class="post-mood">${entry.mood}</div>
+                    <div class="post-content">${entry.text}</div>
+                    ${currentSection === 'removed' ? `
+                        <div class="vault-actions">
+                            <button onclick="restoreEntry(${index})">Restore</button>
+                            <button onclick="permanentlyDelete(${index})">Delete</button>
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+
+        setInterval(() => {
+            const now = Date.now();
+            vault.removed = vault.removed.filter(entry => 
+                (now - entry.removedDate) < 60 * 86400 * 1000
+            );
+            localStorage.setItem('soulboardVault', JSON.stringify(vault));
+        }, 86400000);
+
+        function moveToVault(index) {
+            const entry = entries.splice(index, 1)[0];
+            entry.removedDate = Date.now();
+            vault.removed.push(entry);
+            localStorage.setItem('soulboardEntries', JSON.stringify(entries));
+            localStorage.setItem('soulboardVault', JSON.stringify(vault));
+            refreshFeed();
+        }
+
+        function restoreEntry(index) {
+            const entry = vault[currentSection].splice(index, 1)[0];
+            entries.unshift(entry);
+            localStorage.setItem('soulboardEntries', JSON.stringify(entries));
+            localStorage.setItem('soulboardVault', JSON.stringify(vault));
+            refreshFeed();
+            updateVaultDisplay();
+        }
+
+        function permanentlyDelete(index) {
+            vault[currentSection].splice(index, 1);
+            localStorage.setItem('soulboardVault', JSON.stringify(vault));
+            updateVaultDisplay();
+        }
+
+        function refreshFeed() {
+            const feed = document.getElementById('feed');
+            feed.innerHTML = '';
+            entries.forEach((entry, index) => addPostToFeed(entry, index));
+            updateEmptyState();
+        }
+
+        // PIN Initialization
+        if (!storedPIN) {
+            const newPIN = prompt("Set a 4-digit PIN for vault access:");
+            if (newPIN && newPIN.length === 4 && !isNaN(newPIN)) {
+                localStorage.setItem('soulboardPIN', newPIN);
+            }
+        }
+
+        // Initial Load
+        entries.slice().reverse().forEach((entry, index) => addPostToFeed(entry, index));
         updateEmptyState();
     </script>
 </body>
