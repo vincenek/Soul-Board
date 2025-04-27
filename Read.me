@@ -6,6 +6,7 @@
     <title>SoulBoard</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌥️</text></svg>">
     <style>
+        /* All CSS remains the same as before */
         :root {
             --primary: #8B93FF;
             --secondary: #FFA1F5;
@@ -334,7 +335,6 @@
         let currentPIN = null;
         let currentSection = 'deleted';
 
-        // NEW: Function to toggle vault visibility
         function toggleVault() {
             const vaultModal = document.getElementById('vaultModal');
             if (vaultModal.style.display === 'block') {
@@ -376,17 +376,23 @@
             const contentDiv = document.getElementById('vaultContent');
             contentDiv.innerHTML = vault[currentSection].map((entry, index) => `
                 <div class="vault-entry">
-                    <div class="post-date">${new Date(entry.date).toLocaleDateString()}</div>
+                    <div class="post-date">${new Date(entry.date).toLocaleDateString('en-US', { 
+                        weekday: 'short', 
+                        month: 'short', 
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    })}</div>
                     <div class="post-mood">${entry.mood}</div>
                     <div class="post-content">${entry.text}</div>
                     ${currentSection === 'deleted' ? `
                         <div class="vault-actions">
-                            <button onclick="restoreEntry(${index})">Restore</button>
+                            <button onclick="restoreEntry(${index}, 'deleted')">Restore</button>
                             <button onclick="permanentlyDelete(${index})">Delete Forever</button>
                         </div>
                     ` : `
                         <div class="vault-actions">
-                            <button onclick="unhideEntry(${index})">Unhide</button>
+                            <button onclick="restoreEntry(${index}, 'hidden')">Unhide</button>
                         </div>
                     `}
                 </div>
@@ -402,14 +408,12 @@
             localStorage.setItem('soulboardVault', JSON.stringify(vault));
         }, 86400000);
 
-        // Function to close all menus
         function closeAllMenus() {
             document.querySelectorAll('.menu-options').forEach(menu => {
                 menu.style.display = 'none';
             });
         }
 
-        // Post menu functionality
         function createPostMenu(postElement, index) {
             const menu = document.createElement('div');
             menu.className = 'post-menu';
@@ -436,7 +440,6 @@
             postElement.appendChild(options);
         }
 
-        // Document-wide click listener
         document.addEventListener('click', (e) => {
             if (!e.target.closest('.menu-options') && !e.target.closest('.post-menu')) {
                 closeAllMenus();
@@ -447,34 +450,20 @@
             const entry = entries.splice(index, 1)[0];
             entry.deletedDate = Date.now();
             vault.deleted.push(entry);
-            localStorage.setItem('soulboardEntries', JSON.stringify(entries));
-            localStorage.setItem('soulboardVault', JSON.stringify(vault));
-            refreshFeed();
+            saveAndRefresh();
         }
 
         function hidePost(index) {
             const entry = entries.splice(index, 1)[0];
             vault.hidden.push(entry);
-            localStorage.setItem('soulboardEntries', JSON.stringify(entries));
-            localStorage.setItem('soulboardVault', JSON.stringify(vault));
-            refreshFeed();
+            saveAndRefresh();
         }
 
-        function restoreEntry(index) {
-            const entry = vault[currentSection].splice(index, 1)[0];
+        // FIXED: Restore/unhide functionality
+        function restoreEntry(index, section) {
+            const entry = vault[section].splice(index, 1)[0];
             entries.unshift(entry);
-            localStorage.setItem('soulboardEntries', JSON.stringify(entries));
-            localStorage.setItem('soulboardVault', JSON.stringify(vault));
-            refreshFeed();
-            updateVaultDisplay();
-        }
-
-        function unhideEntry(index) {
-            const entry = vault.hidden.splice(index, 1)[0];
-            entries.unshift(entry);
-            localStorage.setItem('soulboardEntries', JSON.stringify(entries));
-            localStorage.setItem('soulboardVault', JSON.stringify(vault));
-            refreshFeed();
+            saveAndRefresh();
             updateVaultDisplay();
         }
 
@@ -484,11 +473,21 @@
             updateVaultDisplay();
         }
 
+        function saveAndRefresh() {
+            localStorage.setItem('soulboardEntries', JSON.stringify(entries));
+            localStorage.setItem('soulboardVault', JSON.stringify(vault));
+            refreshFeed();
+        }
+
         function refreshFeed() {
             const feed = document.getElementById('feed');
             feed.innerHTML = '';
-            entries.forEach((entry, index) => addPostToFeed(entry, index));
-            updateEmptyState();
+            if (entries.length === 0) {
+                document.getElementById('empty-state').style.display = 'block';
+            } else {
+                document.getElementById('empty-state').style.display = 'none';
+                entries.forEach((entry, index) => addPostToFeed(entry, index));
+            }
         }
 
         function addPostToFeed(entry, index) {
@@ -518,7 +517,6 @@
             }
         }
 
-        // Close vault when clicking outside
         window.onclick = function(event) {
             if (event.target.className === 'vault-modal') {
                 closeVault();
@@ -527,8 +525,7 @@
         }
 
         // Initial Load
-        entries.slice().reverse().forEach((entry, index) => addPostToFeed(entry, index));
-        updateEmptyState();
+        refreshFeed();
     </script>
 </body>
 </html>
