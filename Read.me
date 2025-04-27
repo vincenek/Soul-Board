@@ -6,7 +6,6 @@
     <title>SoulBoard</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌥️</text></svg>">
     <style>
-        /* All previous CSS remains unchanged */
         :root {
             --primary: #8B93FF;
             --secondary: #FFA1F5;
@@ -159,17 +158,6 @@
             line-height: 1.5;
         }
 
-        .loader {
-            width: 18px;
-            height: 18px;
-            border: 2px solid #fff;
-            border-bottom-color: transparent;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            display: inline-block;
-            vertical-align: middle;
-        }
-
         #empty-state {
             text-align: center;
             color: #888;
@@ -276,10 +264,6 @@
             from { transform: translateY(20px); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
         }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
     </style>
 </head>
 <body>
@@ -298,9 +282,9 @@
     </header>
 
     <div class="new-post">
-        <textarea placeholder="What's on your mind today?"></textarea>
+        <textarea placeholder="What's on your mind today?" id="postContent"></textarea>
         <input type="text" class="search-bar" placeholder="Search entries... (date, mood, text)" id="searchInput">
-        <div class="mood-selector">
+        <div class="mood-selector" id="moodSelector">
             <button class="mood-btn">😊 Happy</button>
             <button class="mood-btn">😐 Meh</button>
             <button class="mood-btn">😢 Sad</button>
@@ -310,7 +294,7 @@
             <button class="mood-btn">😴 Tired</button>
             <button class="mood-btn">🎉 Celebratory</button>
         </div>
-        <button class="post-btn">Add to SoulBoard</button>
+        <button class="post-btn" id="submitPost">Add to SoulBoard</button>
     </div>
 
     <div id="feed">
@@ -326,34 +310,62 @@
             deleted: [],
             hidden: []
         };
-        let currentPIN = null;
         let currentSection = 'deleted';
+        let selectedMood = null;
 
-        // Vault Functions
+        // Initialize mood selection
+        document.querySelectorAll('.mood-btn').forEach(button => {
+            button.addEventListener('click', (e) => {
+                document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
+                e.target.classList.add('selected');
+                selectedMood = e.target.textContent.trim();
+            });
+        });
+
+        // Handle post submission
+        document.getElementById('submitPost').addEventListener('click', () => {
+            const content = document.getElementById('postContent').value.trim();
+            
+            if (!selectedMood) {
+                alert('Please select a mood first!');
+                return;
+            }
+            
+            if (!content) {
+                alert('Please write something first!');
+                return;
+            }
+
+            const newEntry = {
+                date: Date.now(),
+                mood: selectedMood,
+                text: content
+            };
+
+            entries.unshift(newEntry);
+            saveAndRefresh();
+            
+            // Clear inputs
+            document.getElementById('postContent').value = '';
+            document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
+            selectedMood = null;
+        });
+
+        // Vault functions
         function toggleVault() {
             const vaultModal = document.getElementById('vaultModal');
-            if (vaultModal.style.display === 'block') {
-                closeVault();
-            } else {
-                showVault();
-            }
+            vaultModal.style.display = vaultModal.style.display === 'block' ? 'none' : 'block';
+            if (vaultModal.style.display === 'block') showVault();
         }
 
         function showVault() {
             const storedPIN = localStorage.getItem('soulboardPIN');
-            if (storedPIN) {
-                const enteredPIN = prompt("Enter your 4-digit PIN:");
-                if (enteredPIN !== storedPIN) {
-                    alert("Incorrect PIN");
-                    return;
-                }
+            if (storedPIN && prompt("Enter your 4-digit PIN:") !== storedPIN) {
+                alert("Incorrect PIN");
+                toggleVault();
+                return;
             }
-            document.getElementById('vaultModal').style.display = 'block';
             updateVaultDisplay();
-        }
-
-        function closeVault() {
-            document.getElementById('vaultModal').style.display = 'none';
         }
 
         function showVaultSection(section) {
@@ -377,21 +389,18 @@
                     })}</div>
                     <div class="post-mood">${entry.mood}</div>
                     <div class="post-content">${entry.text}</div>
-                    ${currentSection === 'deleted' ? `
-                        <div class="vault-actions">
-                            <button onclick="restoreEntry(${index}, 'deleted')">Restore</button>
-                            <button onclick="permanentlyDelete(${index})">Delete Forever</button>
-                        </div>
-                    ` : `
-                        <div class="vault-actions">
-                            <button onclick="restoreEntry(${index}, 'hidden')">Unhide</button>
-                        </div>
-                    `}
+                    <div class="vault-actions">
+                        ${currentSection === 'deleted' ? 
+                            `<button onclick="restoreEntry(${index}, 'deleted')">Restore</button>
+                             <button onclick="permanentlyDelete(${index})">Delete Forever</button>` :
+                            `<button onclick="restoreEntry(${index}, 'hidden')">Unhide</button>`
+                        }
+                    </div>
                 </div>
             `).join('');
         }
 
-        // Entry Management
+        // Entry management
         function restoreEntry(index, section) {
             const entry = vault[section].splice(index, 1)[0];
             entries.unshift({...entry, date: Date.now()});
@@ -423,40 +432,28 @@
             updateVaultDisplay();
         }
 
-        // Feed Management
         function refreshFeed() {
             const feed = document.getElementById('feed');
             feed.innerHTML = '';
             entries.slice().reverse().forEach((entry, index) => {
-                addPostToFeed(entry, index);
+                const post = document.createElement('div');
+                post.className = 'post';
+                post.innerHTML = `
+                    <div class="post-date">${new Date(entry.date).toLocaleDateString('en-US', { 
+                        weekday: 'short', 
+                        month: 'short', 
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    })}</div>
+                    <div class="post-mood">${entry.mood}</div>
+                    <div class="post-content">${entry.text}</div>
+                `;
+                createPostMenu(post, index);
+                feed.appendChild(post);
             });
             document.getElementById('empty-state').style.display = 
                 entries.length ? 'none' : 'block';
-        }
-
-        function addPostToFeed(entry, index) {
-            const post = document.createElement('div');
-            post.className = 'post';
-            post.innerHTML = `
-                <div class="post-date">${new Date(entry.date).toLocaleDateString('en-US', { 
-                    weekday: 'short', 
-                    month: 'short', 
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                })}</div>
-                <div class="post-mood">${entry.mood}</div>
-                <div class="post-content">${entry.text}</div>
-            `;
-            createPostMenu(post, index);
-            document.getElementById('feed').prepend(post);
-        }
-
-        // Menu System
-        function closeAllMenus() {
-            document.querySelectorAll('.menu-options').forEach(menu => {
-                menu.style.display = 'none';
-            });
         }
 
         function createPostMenu(postElement, index) {
@@ -481,24 +478,30 @@
             postElement.appendChild(options);
         }
 
-        // Event Listeners
+        function closeAllMenus() {
+            document.querySelectorAll('.menu-options').forEach(menu => {
+                menu.style.display = 'none';
+            });
+        }
+
+        // Initial setup
+        if (!localStorage.getItem('soulboardPIN')) {
+            let newPIN;
+            while (!newPIN || newPIN.length !== 4 || isNaN(newPIN)) {
+                newPIN = prompt("Set a 4-digit PIN for vault access:");
+            }
+            localStorage.setItem('soulboardPIN', newPIN);
+        }
+
         document.addEventListener('click', (e) => {
             if (!e.target.closest('.menu-options') && !e.target.closest('.post-menu')) {
                 closeAllMenus();
             }
         });
 
-        window.onclick = function(event) {
-            if (event.target.className === 'vault-modal') {
-                closeVault();
-            }
-        }
-
-        // Initialization
-        if (!localStorage.getItem('soulboardPIN')) {
-            const newPIN = prompt("Set a 4-digit PIN for vault access:");
-            if (newPIN?.length === 4 && !isNaN(newPIN)) {
-                localStorage.setItem('soulboardPIN', newPIN);
+        window.onclick = (e) => {
+            if (e.target.className === 'vault-modal') {
+                toggleVault();
             }
         }
 
