@@ -6,7 +6,6 @@
     <title>SoulBoard</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌥️</text></svg>">
     <style>
-        /* ALL YOUR ORIGINAL STYLES PRESERVED EXACTLY */
         :root {
             --primary: #8B93FF;
             --secondary: #FFA1F5;
@@ -185,7 +184,7 @@
     </div>
 
     <script>
-        // FIXED: Mood selection now works
+        // Mood selection
         let selectedMood = null;
         document.querySelectorAll('.mood-btn').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -198,7 +197,7 @@
         // Local storage management
         let entries = JSON.parse(localStorage.getItem('soulboardEntries')) || [];
         
-        // FIXED: Search functionality
+        // Search functionality
         document.getElementById('searchInput').addEventListener('input', (e) => {
             const query = e.target.value.toLowerCase();
             document.querySelectorAll('.post').forEach(post => {
@@ -207,7 +206,7 @@
             });
         });
 
-        // FIXED: Post functionality with mood saving
+        // Post functionality
         document.querySelector('.post-btn').addEventListener('click', () => {
             const text = document.querySelector('textarea').value.trim();
             if (!text) return;
@@ -219,7 +218,8 @@
                 mood: selectedMood || '📝' // Default if no mood selected
             };
 
-            entries.unshift(entry); // FIXED: Newest posts at top
+            // Add new entry to beginning of array (newest first)
+            entries.unshift(entry);
             localStorage.setItem('soulboardEntries', JSON.stringify(entries));
             
             addPostToFeed(entry);
@@ -242,10 +242,16 @@
                 <div class="post-mood">${entry.mood}</div>
                 <div class="post-content">${entry.text}</div>
             `;
-            document.getElementById('feed').prepend(post); // FIXED: Newest first
+            // Add new post to top of feed
+            const feed = document.getElementById('feed');
+            if (feed.firstChild) {
+                feed.insertBefore(post, feed.firstChild);
+            } else {
+                feed.appendChild(post);
+            }
         }
 
-        // Load existing entries (newest first)
+        // Load existing entries (already in reverse chronological order)
         entries.forEach(entry => addPostToFeed(entry));
     </script>
 </body>
