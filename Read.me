@@ -32,7 +32,6 @@
         header {
             text-align: center;
             margin: 2rem 0;
-            animation: fadeIn 1s ease-in;
         }
 
         h1 {
@@ -70,15 +69,6 @@
             font-size: 1rem;
         }
 
-        .search-bar {
-            margin: 1rem 0;
-            padding: 12px;
-            width: 100%;
-            border: 2px solid #eee;
-            border-radius: 8px;
-            font-size: 1rem;
-        }
-
         .mood-selector {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -92,15 +82,7 @@
             border-radius: 20px;
             background: #f0f0f0;
             cursor: pointer;
-            transition: transform 0.2s, opacity 0.2s;
-        }
-
-        .mood-btn:hover {
-            transform: scale(1.05);
-        }
-
-        .mood-btn:active {
-            transform: scale(0.95);
+            transition: transform 0.2s;
         }
 
         .mood-btn.selected {
@@ -117,12 +99,6 @@
             cursor: pointer;
             width: 100%;
             font-size: 1rem;
-            transition: opacity 0.2s;
-            position: relative;
-        }
-
-        .post-btn:hover {
-            opacity: 0.9;
         }
 
         .post {
@@ -131,14 +107,7 @@
             border-radius: 10px;
             margin-bottom: 1.5rem;
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            animation: slideUp 0.5s ease-out;
-            transition: box-shadow 0.3s, transform 0.2s;
             position: relative;
-        }
-
-        .post:hover {
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            transform: translateY(-2px);
         }
 
         .post-date {
@@ -152,19 +121,6 @@
             margin: 0.5rem 0;
         }
 
-        .post-content {
-            white-space: pre-wrap;
-            margin: 0.5rem 0;
-            line-height: 1.5;
-        }
-
-        #empty-state {
-            text-align: center;
-            color: #888;
-            padding: 2rem;
-            display: none;
-        }
-
         .vault-access {
             position: fixed;
             bottom: 20px;
@@ -175,7 +131,6 @@
             border-radius: 25px;
             cursor: pointer;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            z-index: 100;
         }
 
         .vault-modal {
@@ -188,48 +143,7 @@
             padding: 2rem;
             border-radius: 10px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-            z-index: 1000;
             max-width: 90%;
-        }
-
-        .vault-tabs {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .vault-tab-btn {
-            background: none;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-
-        .vault-tab-btn.active {
-            background: var(--primary);
-            color: white;
-        }
-
-        .vault-entry {
-            background: var(--background);
-            padding: 1rem;
-            border-radius: 8px;
-            margin-bottom: 1rem;
-        }
-
-        .post-menu {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-            cursor: pointer;
-            padding: 4px;
-            border-radius: 50%;
-            transition: background 0.2s;
-        }
-
-        .post-menu:hover {
-            background: rgba(0,0,0,0.05);
         }
 
         .menu-options {
@@ -240,39 +154,13 @@
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             padding: 0.5rem;
-            z-index: 10;
             display: none;
-        }
-
-        .menu-option {
-            padding: 0.5rem 1rem;
-            white-space: nowrap;
-            cursor: pointer;
-            border-radius: 4px;
-        }
-
-        .menu-option:hover {
-            background: var(--background);
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        @keyframes slideUp {
-            from { transform: translateY(20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
         }
     </style>
 </head>
 <body>
     <div class="vault-access" onclick="toggleVault()">🔒 Vault</div>
     <div class="vault-modal" id="vaultModal">
-        <div class="vault-tabs">
-            <button class="vault-tab-btn active" onclick="showVaultSection('deleted')">Deleted (60d)</button>
-            <button class="vault-tab-btn" onclick="showVaultSection('hidden')">Hidden</button>
-        </div>
         <div id="vaultContent"></div>
     </div>
 
@@ -283,229 +171,114 @@
 
     <div class="new-post">
         <textarea placeholder="What's on your mind today?" id="postContent"></textarea>
-        <input type="text" class="search-bar" placeholder="Search entries... (date, mood, text)" id="searchInput">
-        <div class="mood-selector" id="moodSelector">
-            <button class="mood-btn">😊 Happy</button>
-            <button class="mood-btn">😐 Meh</button>
-            <button class="mood-btn">😢 Sad</button>
-            <button class="mood-btn">💡 Inspired</button>
-            <button class="mood-btn">🌪 Anxious</button>
-            <button class="mood-btn">😡 Angry</button>
-            <button class="mood-btn">😴 Tired</button>
-            <button class="mood-btn">🎉 Celebratory</button>
+        <div class="mood-selector">
+            <button class="mood-btn" data-mood="😊 Happy">😊 Happy</button>
+            <button class="mood-btn" data-mood="😐 Meh">😐 Meh</button>
+            <button class="mood-btn" data-mood="😢 Sad">😢 Sad</button>
+            <button class="mood-btn" data-mood="💡 Inspired">💡 Inspired</button>
+            <button class="mood-btn" data-mood="🌪 Anxious">🌪 Anxious</button>
+            <button class="mood-btn" data-mood="😡 Angry">😡 Angry</button>
+            <button class="mood-btn" data-mood="😴 Tired">😴 Tired</button>
+            <button class="mood-btn" data-mood="🎉 Celebratory">🎉 Celebratory</button>
         </div>
         <button class="post-btn" id="submitPost">Add to SoulBoard</button>
     </div>
 
-    <div id="feed">
-        <div id="empty-state">
-            ✨ Your soul's feed is empty...<br>
-            Be the first to share your thoughts!
-        </div>
-    </div>
+    <div id="feed"></div>
 
     <script>
-        let entries = JSON.parse(localStorage.getItem('soulboardEntries')) || [];
-        let vault = JSON.parse(localStorage.getItem('soulboardVault')) || {
-            deleted: [],
-            hidden: []
-        };
-        let currentSection = 'deleted';
+        // Data Storage
+        let entries = JSON.parse(localStorage.getItem('entries')) || [];
+        let vault = JSON.parse(localStorage.getItem('vault')) || { deleted: [], hidden: [] };
         let selectedMood = null;
 
-        // Initialize mood selection
-        document.querySelectorAll('.mood-btn').forEach(button => {
-            button.addEventListener('click', (e) => {
+        // Mood Selection
+        document.querySelectorAll('.mood-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
                 document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
                 e.target.classList.add('selected');
-                selectedMood = e.target.textContent.trim();
+                selectedMood = e.target.dataset.mood;
             });
         });
 
-        // Handle post submission
+        // Post Creation
         document.getElementById('submitPost').addEventListener('click', () => {
             const content = document.getElementById('postContent').value.trim();
             
-            if (!selectedMood) {
-                alert('Please select a mood first!');
-                return;
-            }
+            if (!selectedMood) return alert('Select a mood!');
+            if (!content) return alert('Write something!');
             
-            if (!content) {
-                alert('Please write something first!');
-                return;
-            }
-
-            const newEntry = {
-                date: Date.now(),
+            const newPost = {
+                id: Date.now(),
+                date: new Date().toISOString(),
                 mood: selectedMood,
-                text: content
+                content: content
             };
 
-            entries.unshift(newEntry);
-            saveAndRefresh();
-            
-            // Clear inputs
+            entries = [newPost, ...entries];
+            updateStorage();
+            renderPosts();
             document.getElementById('postContent').value = '';
-            document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
-            selectedMood = null;
+            document.querySelector('.selected')?.classList.remove('selected');
         });
 
-        // Vault functions
+        // Vault System
         function toggleVault() {
-            const vaultModal = document.getElementById('vaultModal');
-            vaultModal.style.display = vaultModal.style.display === 'block' ? 'none' : 'block';
-            if (vaultModal.style.display === 'block') showVault();
+            const modal = document.getElementById('vaultModal');
+            modal.style.display = modal.style.display === 'block' ? 'none' : 'block';
+            if (modal.style.display === 'block') renderVault();
         }
 
-        function showVault() {
-            const storedPIN = localStorage.getItem('soulboardPIN');
-            if (storedPIN && prompt("Enter your 4-digit PIN:") !== storedPIN) {
-                alert("Incorrect PIN");
-                toggleVault();
-                return;
-            }
-            updateVaultDisplay();
-        }
-
-        function showVaultSection(section) {
-            currentSection = section;
-            document.querySelectorAll('.vault-tab-btn').forEach(btn => {
-                btn.classList.toggle('active', btn.textContent.includes(section));
-            });
-            updateVaultDisplay();
-        }
-
-        function updateVaultDisplay() {
-            const contentDiv = document.getElementById('vaultContent');
-            contentDiv.innerHTML = vault[currentSection].map((entry, index) => `
-                <div class="vault-entry">
-                    <div class="post-date">${new Date(entry.date).toLocaleDateString('en-US', { 
-                        weekday: 'short', 
-                        month: 'short', 
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                    })}</div>
+        function renderVault() {
+            const vaultContent = document.getElementById('vaultContent');
+            vaultContent.innerHTML = vault.deleted.map(entry => `
+                <div class="post">
+                    <div class="post-date">${new Date(entry.date).toLocaleString()}</div>
                     <div class="post-mood">${entry.mood}</div>
-                    <div class="post-content">${entry.text}</div>
-                    <div class="vault-actions">
-                        ${currentSection === 'deleted' ? 
-                            `<button onclick="restoreEntry(${index}, 'deleted')">Restore</button>
-                             <button onclick="permanentlyDelete(${index})">Delete Forever</button>` :
-                            `<button onclick="restoreEntry(${index}, 'hidden')">Unhide</button>`
-                        }
-                    </div>
+                    <div class="post-content">${entry.content}</div>
+                    <button onclick="restorePost('${entry.id}')">Restore</button>
                 </div>
             `).join('');
         }
 
-        // Entry management
-        function restoreEntry(index, section) {
-            const entry = vault[section].splice(index, 1)[0];
-            entries.unshift({...entry, date: Date.now()});
-            saveAndRefresh();
+        // Post Actions
+        function deletePost(postId) {
+            const post = entries.find(p => p.id === postId);
+            vault.deleted.push(post);
+            entries = entries.filter(p => p.id !== postId);
+            updateStorage();
+            renderPosts();
         }
 
-        function permanentlyDelete(index) {
-            vault.deleted.splice(index, 1);
-            saveAndRefresh();
+        function restorePost(postId) {
+            const post = vault.deleted.find(p => p.id === postId);
+            entries = [post, ...entries];
+            vault.deleted = vault.deleted.filter(p => p.id !== postId);
+            updateStorage();
+            renderPosts();
+            renderVault();
         }
 
-        function deletePost(index) {
-            const entry = entries.splice(index, 1)[0];
-            entry.deletedDate = Date.now();
-            vault.deleted.push(entry);
-            saveAndRefresh();
-        }
-
-        function hidePost(index) {
-            const entry = entries.splice(index, 1)[0];
-            vault.hidden.push(entry);
-            saveAndRefresh();
-        }
-
-        function saveAndRefresh() {
-            localStorage.setItem('soulboardEntries', JSON.stringify(entries));
-            localStorage.setItem('soulboardVault', JSON.stringify(vault));
-            refreshFeed();
-            updateVaultDisplay();
-        }
-
-        function refreshFeed() {
+        // Rendering
+        function renderPosts() {
             const feed = document.getElementById('feed');
-            feed.innerHTML = '';
-            entries.slice().reverse().forEach((entry, index) => {
-                const post = document.createElement('div');
-                post.className = 'post';
-                post.innerHTML = `
-                    <div class="post-date">${new Date(entry.date).toLocaleDateString('en-US', { 
-                        weekday: 'short', 
-                        month: 'short', 
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                    })}</div>
+            feed.innerHTML = entries.map(entry => `
+                <div class="post">
+                    <div class="post-date">${new Date(entry.date).toLocaleString()}</div>
                     <div class="post-mood">${entry.mood}</div>
-                    <div class="post-content">${entry.text}</div>
-                `;
-                createPostMenu(post, index);
-                feed.appendChild(post);
-            });
-            document.getElementById('empty-state').style.display = 
-                entries.length ? 'none' : 'block';
+                    <div class="post-content">${entry.content}</div>
+                    <button onclick="deletePost('${entry.id}')">Delete</button>
+                </div>
+            `).join('');
         }
 
-        function createPostMenu(postElement, index) {
-            const menu = document.createElement('div');
-            menu.className = 'post-menu';
-            menu.innerHTML = '⋯';
-            menu.onclick = (e) => {
-                e.stopPropagation();
-                closeAllMenus();
-                const options = postElement.querySelector('.menu-options');
-                options.style.display = options.style.display === 'block' ? 'none' : 'block';
-            };
-
-            const options = document.createElement('div');
-            options.className = 'menu-options';
-            options.innerHTML = `
-                <div class="menu-option" onclick="deletePost(${index})">Delete</div>
-                <div class="menu-option" onclick="hidePost(${index})">Hide</div>
-            `;
-            options.onclick = (e) => e.stopPropagation();
-            postElement.appendChild(menu);
-            postElement.appendChild(options);
+        function updateStorage() {
+            localStorage.setItem('entries', JSON.stringify(entries));
+            localStorage.setItem('vault', JSON.stringify(vault));
         }
 
-        function closeAllMenus() {
-            document.querySelectorAll('.menu-options').forEach(menu => {
-                menu.style.display = 'none';
-            });
-        }
-
-        // Initial setup
-        if (!localStorage.getItem('soulboardPIN')) {
-            let newPIN;
-            while (!newPIN || newPIN.length !== 4 || isNaN(newPIN)) {
-                newPIN = prompt("Set a 4-digit PIN for vault access:");
-            }
-            localStorage.setItem('soulboardPIN', newPIN);
-        }
-
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('.menu-options') && !e.target.closest('.post-menu')) {
-                closeAllMenus();
-            }
-        });
-
-        window.onclick = (e) => {
-            if (e.target.className === 'vault-modal') {
-                toggleVault();
-            }
-        }
-
-        refreshFeed();
+        // Initial Load
+        renderPosts();
     </script>
 </body>
 </html>
