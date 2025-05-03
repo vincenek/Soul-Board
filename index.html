@@ -3,16 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SoulBoard | Professional Mental Journal</title>
+    <title>SoulBoard Pro | Secure Mental Journal</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌥️</text></svg>">
     <style>
         :root {
-            --primary: #6C63FF;
-            --secondary: #FF6584;
-            --background: #F8F9FF;
-            --text: #2A2A2A;
-            --border: #EAEAEA;
-            --error: #FF4757;
+            --primary: #6366F1;
+            --secondary: #EC4899;
+            --background: #F8FAFC;
+            --text: #1E293B;
+            --border: #E2E8F0;
+            --error: #EF4444;
+            --success: #10B981;
         }
 
         * {
@@ -25,7 +26,7 @@
         body {
             background: var(--background);
             color: var(--text);
-            line-height: 1.6;
+            line-height: 1.5;
             max-width: 680px;
             margin: 0 auto;
             padding: 2rem 1rem;
@@ -44,21 +45,22 @@
         }
 
         .tagline {
-            color: #666;
+            color: #64748B;
             font-size: 1.1rem;
             font-weight: 400;
             letter-spacing: -0.02em;
         }
 
-        /* Main Content Area */
+        /* Journal Container */
         .journal-container {
             background: white;
-            border-radius: 1.2rem;
+            border-radius: 1rem;
             box-shadow: 0 8px 32px rgba(0,0,0,0.04);
             padding: 2rem;
             margin-bottom: 2rem;
         }
 
+        /* Editor Section */
         .editor textarea {
             width: 100%;
             padding: 1.2rem;
@@ -68,13 +70,13 @@
             margin-bottom: 1.5rem;
             font-size: 1rem;
             resize: vertical;
-            transition: border-color 0.2s ease;
+            transition: all 0.2s ease;
         }
 
         .editor textarea:focus {
             outline: none;
             border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.1);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
         }
 
         /* Mood Selector */
@@ -104,6 +106,24 @@
             border-color: var(--primary);
         }
 
+        /* Post Button */
+        .post-btn {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            border: none;
+            border-radius: 0.6rem;
+            padding: 1rem 2rem;
+            width: 100%;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: opacity 0.2s ease;
+        }
+
+        .post-btn:hover {
+            opacity: 0.9;
+        }
+
         /* Posts Feed */
         .posts-feed {
             margin-top: 2rem;
@@ -131,7 +151,7 @@
         }
 
         .post-date {
-            color: #888;
+            color: #64748B;
             font-size: 0.85rem;
             font-weight: 500;
         }
@@ -146,16 +166,28 @@
             margin: 1rem 0;
         }
 
-        /* Delete Functionality */
-        .post-actions {
+        /* Search Bar */
+        .search-bar {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 2px solid var(--border);
+            border-radius: 0.6rem;
+            margin-bottom: 1.5rem;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .search-bar:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        /* Delete Button */
+        .delete-btn {
             position: absolute;
             top: 1rem;
             right: 1rem;
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        .delete-btn {
             background: none;
             border: none;
             color: var(--error);
@@ -168,19 +200,19 @@
         }
 
         .delete-btn:hover {
-            background: rgba(255, 71, 87, 0.1);
+            background: rgba(239, 68, 68, 0.1);
         }
 
         /* Empty State */
         .empty-state {
             text-align: center;
             padding: 3rem;
-            color: #888;
+            color: #94A3B8;
         }
 
         /* Pro Banner */
         .pro-banner {
-            background: linear-gradient(135deg, #6C63FF 0%, #8B82FF 100%);
+            background: linear-gradient(135deg, var(--primary) 0%, #818CF8 100%);
             color: white;
             padding: 0.8rem;
             text-align: center;
@@ -189,7 +221,7 @@
             position: sticky;
             top: 1rem;
             z-index: 100;
-            box-shadow: 0 4px 15px rgba(108, 99, 255, 0.2);
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.2);
         }
 
         @keyframes fadeIn {
@@ -200,18 +232,20 @@
 </head>
 <body>
     <div class="pro-banner">
-        🚀 PRO Version Coming Q4 2026: End-to-End Encryption & AI Insights
+        🚀 PRO Version Coming Q4 2026: Military-Grade Encryption & AI Analysis
     </div>
 
     <header class="header">
         <div class="logo">🌥️</div>
-        <h1 class="tagline">SoulBoard: Private Mental Journal</h1>
+        <h1 class="tagline">SoulBoard Pro - Private Thought Journal</h1>
     </header>
 
     <main class="journal-container">
         <section class="editor">
+            <input type="text" class="search-bar" placeholder="Search entries..." id="searchInput">
+            
             <textarea 
-                placeholder="What's on your mind? Be completely honest..."></textarea>
+                placeholder="Express your thoughts freely..."></textarea>
             
             <div class="mood-grid">
                 <button class="mood-btn" data-mood="😊 Happy">😊 Happy</button>
@@ -229,24 +263,29 @@
 
         <section class="posts-feed" id="postsFeed">
             <div class="empty-state" id="emptyState">
-                ✨ Your journal is empty... Start your healing journey
+                ✨ Your journal is empty. Start your healing journey.
             </div>
         </section>
     </main>
 
     <script>
-        class SoulBoard {
+        class SoulBoardPro {
             constructor() {
                 this.entries = this.loadEntries();
-                this.initEventListeners();
+                this.init();
+            }
+
+            init() {
+                this.bindEvents();
                 this.renderPosts();
+                this.setupSearch();
             }
 
             loadEntries() {
                 try {
                     return JSON.parse(localStorage.getItem('soulboardEntries')) || [];
                 } catch (error) {
-                    console.error('Error loading entries:', error);
+                    console.error('Storage error:', error);
                     return [];
                 }
             }
@@ -255,60 +294,79 @@
                 localStorage.setItem('soulboardEntries', JSON.stringify(this.entries));
             }
 
-            initEventListeners() {
-                document.querySelectorAll('.mood-btn').forEach(btn => {
-                    btn.addEventListener('click', () => this.handleMoodSelect(btn));
-                });
-
+            bindEvents() {
                 document.querySelector('.post-btn').addEventListener('click', () => this.createPost());
+                document.querySelectorAll('.mood-btn').forEach(btn => 
+                    btn.addEventListener('click', () => this.toggleMood(btn)));
+                document.getElementById('postsFeed').addEventListener('click', (e) => {
+                    if (e.target.closest('.delete-btn')) this.deletePost(e);
+                });
             }
 
-            handleMoodSelect(selectedBtn) {
-                document.querySelectorAll('.mood-btn').forEach(btn => 
-                    btn.classList.remove('active'));
-                selectedBtn.classList.add('active');
+            toggleMood(btn) {
+                document.querySelectorAll('.mood-btn').forEach(b => 
+                    b.classList.remove('active'));
+                btn.classList.add('active');
             }
 
             createPost() {
                 const text = document.querySelector('textarea').value.trim();
-                const moodBtn = document.querySelector('.mood-btn.active');
-                const mood = moodBtn ? moodBtn.dataset.mood : '📝 Neutral';
-
+                const mood = document.querySelector('.mood-btn.active')?.dataset.mood || '📝 Neutral';
+                
                 if (!text) return;
 
                 const newEntry = {
                     id: Date.now(),
                     text,
                     mood,
-                    date: new Date().toISOString()
+                    date: new Date().toISOString(),
+                    timestamp: new Date().getTime()
                 };
 
                 this.entries = [newEntry, ...this.entries];
                 this.saveEntries();
                 this.renderPosts();
-                
-                // Reset form
-                document.querySelector('textarea').value = '';
-                document.querySelectorAll('.mood-btn').forEach(btn => 
-                    btn.classList.remove('active'));
+                this.resetForm();
             }
 
-            deletePost(postId) {
+            deletePost(e) {
+                const postId = Number(e.target.closest('.post-card').dataset.id);
                 this.entries = this.entries.filter(entry => entry.id !== postId);
                 this.saveEntries();
                 this.renderPosts();
             }
 
-            renderPosts() {
+            setupSearch() {
+                const searchInput = document.getElementById('searchInput');
+                let timeout;
+                
+                searchInput.addEventListener('input', (e) => {
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => this.filterPosts(e.target.value), 300);
+                });
+            }
+
+            filterPosts(query) {
+                const normalizedQuery = query.toLowerCase().trim();
+                const filtered = this.entries.filter(entry => 
+                    entry.text.toLowerCase().includes(normalizedQuery) ||
+                    entry.mood.toLowerCase().includes(normalizedQuery) ||
+                    new Date(entry.date).toLocaleString().toLowerCase().includes(normalizedQuery)
+                );
+                this.renderPosts(filtered);
+            }
+
+            renderPosts(entries = this.entries) {
                 const feed = document.getElementById('postsFeed');
                 const emptyState = document.getElementById('emptyState');
                 
                 feed.innerHTML = '';
-                emptyState.style.display = this.entries.length ? 'none' : 'block';
+                emptyState.style.display = entries.length ? 'none' : 'block';
 
-                this.entries.forEach(entry => {
+                entries.forEach(entry => {
                     const post = document.createElement('div');
                     post.className = 'post-card';
+                    post.dataset.id = entry.id;
                     post.innerHTML = `
                         <div class="post-meta">
                             <div class="post-date">
@@ -320,19 +378,21 @@
                             <div class="post-mood">${entry.mood}</div>
                         </div>
                         <div class="post-content">${entry.text}</div>
-                        <div class="post-actions">
-                            <button class="delete-btn" onclick="soulBoard.deletePost(${entry.id})">
-                                🗑️
-                            </button>
-                        </div>
+                        <button class="delete-btn">🗑️ Delete</button>
                     `;
                     feed.appendChild(post);
                 });
             }
+
+            resetForm() {
+                document.querySelector('textarea').value = '';
+                document.querySelectorAll('.mood-btn').forEach(btn => 
+                    btn.classList.remove('active'));
+            }
         }
 
-        // Initialize SoulBoard
-        const soulBoard = new SoulBoard();
+        // Initialize SoulBoard Pro
+        const soulBoard = new SoulBoardPro();
     </script>
 </body>
 </html>
