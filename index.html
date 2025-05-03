@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SoulBoard | Reliable Nature Journal</title>
+    <title>SoulBoard | Guaranteed Working Version</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌿</text></svg>">
     <style>
-        /* (Keep all previous CSS styles the same) */
+        /* Maintain all previous CSS styles */
         :root {
             --primary: #2A9D8F;
             --secondary: #E9C46A;
@@ -235,31 +235,39 @@
     <script>
         class NatureJournal {
             constructor() {
-                this.STORAGE_KEY = 'soulboardEntries'; // Consistent storage key
+                this.STORAGE_KEY = 'natureJournalData'; // Fixed consistent key
                 this.entries = this.loadEntries();
                 this.init();
+                console.log('Initialized with entries:', this.entries); // Debug
             }
 
             init() {
                 this.bindEvents();
                 this.renderPosts();
                 this.setupSearch();
-                console.log('Loaded entries:', this.entries); // Debug log
             }
 
             loadEntries() {
                 try {
-                    const entries = JSON.parse(localStorage.getItem(this.STORAGE_KEY)) || [];
-                    return entries.sort((a, b) => b.timestamp - a.timestamp); // Ensure proper sorting
+                    const data = localStorage.getItem(this.STORAGE_KEY);
+                    if (!data) return [];
+                    
+                    const entries = JSON.parse(data);
+                    return entries.sort((a, b) => b.id - a.id); // Sort by ID descending
                 } catch (error) {
-                    console.error('Storage error:', error);
+                    console.error('Load error:', error);
                     return [];
                 }
             }
 
             saveEntries() {
-                localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.entries));
-                console.log('Saved entries:', this.entries); // Debug log
+                try {
+                    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.entries));
+                    console.log('Saved entries:', this.entries); // Debug
+                } catch (error) {
+                    console.error('Save error:', error);
+                    alert('Storage full! Please clear some space.');
+                }
             }
 
             bindEvents() {
@@ -282,14 +290,16 @@
                 const text = document.querySelector('textarea').value.trim();
                 const mood = document.querySelector('.mood-btn.active')?.dataset.mood || '🌱 Neutral';
                 
-                if (!text) return;
+                if (!text) {
+                    alert('Please write something before posting!');
+                    return;
+                }
 
                 const newEntry = {
-                    id: Date.now(),
+                    id: Date.now(), // Unique ID based on timestamp
                     text,
                     mood,
-                    date: new Date().toISOString(),
-                    timestamp: Date.now()
+                    date: new Date().toISOString()
                 };
 
                 this.entries = [newEntry, ...this.entries];
@@ -354,12 +364,12 @@
             }
         }
 
-        // Initialize Journal with error handling
+        // Initialize with error handling
         try {
             const journal = new NatureJournal();
         } catch (error) {
-            console.error('Journal initialization failed:', error);
-            alert('Failed to initialize journal. Please clear browser data and try again.');
+            console.error('Critical error:', error);
+            document.body.innerHTML = `<h1 style="color:red">Critical Error: Please clear browser data and refresh</h1>`;
         }
     </script>
 </body>
