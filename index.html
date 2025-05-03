@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SoulBoard | Guaranteed Working Version</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌿</text></svg>">
+    <title>SoulBoard Pro | Tropical Journal</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌴</text></svg>">
     <style>
-        /* Maintain all previous CSS styles */
         :root {
             --primary: #2A9D8F;
             --secondary: #E9C46A;
@@ -199,16 +198,16 @@
 </head>
 <body>
     <header class="header">
-        <div class="logo">🌿</div>
-        <h1 class="tagline">Nature's Thought Journal</h1>
+        <div class="logo">🌴</div>
+        <h1 class="tagline">Tropical Thought Journal</h1>
     </header>
 
     <main class="journal-container">
         <section class="editor">
-            <textarea placeholder="What's growing in your mind today?"></textarea>
+            <textarea placeholder="What's blooming in your mind today?"></textarea>
             
             <div class="mood-grid">
-                <button class="mood-btn" data-mood="🌻 Happy">🌻 Happy</button>
+                <button class="mood-btn" data-mood="🌺 Happy">🌺 Happy</button>
                 <button class="mood-btn" data-mood="🍃 Calm">🍃 Calm</button>
                 <button class="mood-btn" data-mood="🌧️ Reflective">🌧️ Reflective</button>
                 <button class="mood-btn" data-mood="💡 Inspired">💡 Inspired</button>
@@ -221,39 +220,41 @@
             <button class="post-btn">Plant This Thought</button>
 
             <div class="search-container">
-                <input type="text" class="search-bar" placeholder="Search your garden of thoughts..." id="searchInput">
+                <input type="text" 
+                       class="search-bar" 
+                       placeholder="Search your tropical garden..."
+                       id="searchInput"
+                       autocomplete="off">
             </div>
         </section>
 
         <section class="posts-feed" id="postsFeed">
             <div class="empty-state" id="emptyState">
-                Your mental garden is empty... Plant your first thought seed
+                Your mental paradise is empty... Plant your first thought seed
             </div>
         </section>
     </main>
 
     <script>
-        class NatureJournal {
+        class TropicalJournal {
             constructor() {
-                this.STORAGE_KEY = 'natureJournalData'; // Fixed consistent key
+                this.STORAGE_KEY = 'tropicalJournal_v1';
                 this.entries = this.loadEntries();
+                this.searchQuery = '';
                 this.init();
-                console.log('Initialized with entries:', this.entries); // Debug
             }
 
             init() {
                 this.bindEvents();
-                this.renderPosts();
+                this.render();
                 this.setupSearch();
+                console.log('Journal initialized:', this.entries);
             }
 
             loadEntries() {
                 try {
                     const data = localStorage.getItem(this.STORAGE_KEY);
-                    if (!data) return [];
-                    
-                    const entries = JSON.parse(data);
-                    return entries.sort((a, b) => b.id - a.id); // Sort by ID descending
+                    return data ? JSON.parse(data).sort((a, b) => b.id - a.id) : [];
                 } catch (error) {
                     console.error('Load error:', error);
                     return [];
@@ -263,7 +264,6 @@
             saveEntries() {
                 try {
                     localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.entries));
-                    console.log('Saved entries:', this.entries); // Debug
                 } catch (error) {
                     console.error('Save error:', error);
                     alert('Storage full! Please clear some space.');
@@ -291,21 +291,38 @@
                 const mood = document.querySelector('.mood-btn.active')?.dataset.mood || '🌱 Neutral';
                 
                 if (!text) {
-                    alert('Please write something before posting!');
+                    alert('Please share your thoughts before planting!');
                     return;
                 }
 
                 const newEntry = {
-                    id: Date.now(), // Unique ID based on timestamp
+                    id: Date.now(),
                     text,
                     mood,
-                    date: new Date().toISOString()
+                    date: new Date().toISOString(),
+                    searchString: this.createSearchString(text, mood)
                 };
 
                 this.entries = [newEntry, ...this.entries];
                 this.saveEntries();
-                this.renderPosts();
+                this.render();
                 this.resetForm();
+            }
+
+            createSearchString(text, mood) {
+                const date = new Date();
+                return [
+                    text.toLowerCase(),
+                    mood.toLowerCase(),
+                    date.toLocaleDateString('en-US', { 
+                        month: 'long', 
+                        day: 'numeric', 
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    }).toLowerCase(),
+                    date.getFullYear().toString()
+                ].join('|');
             }
 
             setupSearch() {
@@ -314,30 +331,33 @@
                 
                 searchInput.addEventListener('input', (e) => {
                     clearTimeout(timeout);
-                    timeout = setTimeout(() => {
-                        this.filterPosts(e.target.value);
-                    }, 300);
+                    this.searchQuery = e.target.value.trim().toLowerCase();
+                    timeout = setTimeout(() => this.render(), 150);
                 });
             }
 
-            filterPosts(query) {
-                const normalizedQuery = query.toLowerCase().trim();
-                const filtered = this.entries.filter(entry => 
-                    entry.text.toLowerCase().includes(normalizedQuery) ||
-                    entry.mood.toLowerCase().includes(normalizedQuery) ||
-                    new Date(entry.date).toLocaleString().toLowerCase().includes(normalizedQuery)
-                );
-                this.renderPosts(filtered);
+            get filteredEntries() {
+                if (!this.searchQuery) return this.entries;
+                return this.entries.filter(entry => 
+                    entry.searchString.includes(this.searchQuery)
             }
 
-            renderPosts(entries = this.entries) {
+            render() {
                 const feed = document.getElementById('postsFeed');
                 const emptyState = document.getElementById('emptyState');
                 
-                feed.innerHTML = '';
-                emptyState.style.display = entries.length ? 'none' : 'block';
+                // Optimized DOM updates
+                if (this.entries.length === 0) {
+                    feed.innerHTML = '';
+                    emptyState.style.display = 'block';
+                    return;
+                }
 
-                entries.forEach(entry => {
+                emptyState.style.display = 'none';
+                
+                // Batch DOM manipulation
+                const fragment = document.createDocumentFragment();
+                this.filteredEntries.forEach(entry => {
                     const post = document.createElement('div');
                     post.className = 'post-card';
                     post.innerHTML = `
@@ -352,8 +372,11 @@
                         </div>
                         <div class="post-content">${entry.text}</div>
                     `;
-                    feed.appendChild(post);
+                    fragment.appendChild(post);
                 });
+
+                feed.innerHTML = '';
+                feed.appendChild(fragment);
             }
 
             resetForm() {
@@ -364,12 +387,17 @@
             }
         }
 
-        // Initialize with error handling
+        // Initialize with error boundary
         try {
-            const journal = new NatureJournal();
+            new TropicalJournal();
         } catch (error) {
             console.error('Critical error:', error);
-            document.body.innerHTML = `<h1 style="color:red">Critical Error: Please clear browser data and refresh</h1>`;
+            document.body.innerHTML = `
+                <div style="text-align: center; padding: 2rem; color: var(--error)">
+                    <h2>🌴 System Refresh Needed</h2>
+                    <p>Please clear browser data and refresh the page</p>
+                </div>
+            `;
         }
     </script>
 </body>
