@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SoulBoard | Nature-Inspired Journal</title>
+    <title>SoulBoard | Reliable Nature Journal</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌿</text></svg>">
     <style>
+        /* (Keep all previous CSS styles the same) */
         :root {
             --primary: #2A9D8F;
             --secondary: #E9C46A;
@@ -31,7 +32,6 @@
             padding: 2rem 1rem;
         }
 
-        /* Header Section */
         .header {
             text-align: center;
             margin-bottom: 2rem;
@@ -51,7 +51,6 @@
             letter-spacing: -0.02em;
         }
 
-        /* Journal Container */
         .journal-container {
             background: rgba(255, 255, 255, 0.9);
             border-radius: 1rem;
@@ -61,7 +60,6 @@
             backdrop-filter: blur(4px);
         }
 
-        /* Editor Section */
         .editor textarea {
             width: 100%;
             padding: 1.2rem;
@@ -81,7 +79,6 @@
             box-shadow: 0 0 0 3px rgba(42, 157, 143, 0.1);
         }
 
-        /* Mood Selector */
         .mood-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
@@ -108,7 +105,6 @@
             border-color: var(--primary);
         }
 
-        /* Post Button */
         .post-btn {
             background: linear-gradient(135deg, var(--primary) 0%, #34A798 100%);
             color: white;
@@ -126,7 +122,6 @@
             transform: translateY(-1px);
         }
 
-        /* Search Bar */
         .search-container {
             margin: 1.5rem 0;
         }
@@ -147,7 +142,6 @@
             box-shadow: 0 0 0 3px rgba(42, 157, 143, 0.1);
         }
 
-        /* Posts Feed */
         .posts-feed {
             margin-top: 1rem;
         }
@@ -190,7 +184,6 @@
             color: #2D3E40;
         }
 
-        /* Empty State */
         .empty-state {
             text-align: center;
             padding: 3rem;
@@ -242,6 +235,7 @@
     <script>
         class NatureJournal {
             constructor() {
+                this.STORAGE_KEY = 'soulboardEntries'; // Consistent storage key
                 this.entries = this.loadEntries();
                 this.init();
             }
@@ -250,11 +244,13 @@
                 this.bindEvents();
                 this.renderPosts();
                 this.setupSearch();
+                console.log('Loaded entries:', this.entries); // Debug log
             }
 
             loadEntries() {
                 try {
-                    return JSON.parse(localStorage.getItem('natureJournal')) || [];
+                    const entries = JSON.parse(localStorage.getItem(this.STORAGE_KEY)) || [];
+                    return entries.sort((a, b) => b.timestamp - a.timestamp); // Ensure proper sorting
                 } catch (error) {
                     console.error('Storage error:', error);
                     return [];
@@ -262,11 +258,16 @@
             }
 
             saveEntries() {
-                localStorage.setItem('natureJournal', JSON.stringify(this.entries));
+                localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.entries));
+                console.log('Saved entries:', this.entries); // Debug log
             }
 
             bindEvents() {
-                document.querySelector('.post-btn').addEventListener('click', () => this.createPost());
+                document.querySelector('.post-btn').addEventListener('click', (e) => {
+                    e.preventDefault();
+                    this.createPost();
+                });
+                
                 document.querySelectorAll('.mood-btn').forEach(btn => 
                     btn.addEventListener('click', () => this.toggleMood(btn)));
             }
@@ -288,7 +289,7 @@
                     text,
                     mood,
                     date: new Date().toISOString(),
-                    timestamp: new Date().getTime()
+                    timestamp: Date.now()
                 };
 
                 this.entries = [newEntry, ...this.entries];
@@ -303,7 +304,9 @@
                 
                 searchInput.addEventListener('input', (e) => {
                     clearTimeout(timeout);
-                    timeout = setTimeout(() => this.filterPosts(e.target.value), 300);
+                    timeout = setTimeout(() => {
+                        this.filterPosts(e.target.value);
+                    }, 300);
                 });
             }
 
@@ -351,8 +354,13 @@
             }
         }
 
-        // Initialize Journal
-        const journal = new NatureJournal();
+        // Initialize Journal with error handling
+        try {
+            const journal = new NatureJournal();
+        } catch (error) {
+            console.error('Journal initialization failed:', error);
+            alert('Failed to initialize journal. Please clear browser data and try again.');
+        }
     </script>
 </body>
 </html>
