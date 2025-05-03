@@ -144,6 +144,7 @@
             box-shadow: 0 4px 20px rgba(0,0,0,0.06);
             animation: slideUp 0.5s ease-out;
             backdrop-filter: blur(5px);
+            position: relative;
         }
 
         .post:hover {
@@ -161,6 +162,56 @@
         .post-mood {
             font-size: 1.6rem;
             margin: 0.5rem 0;
+        }
+
+        /* Delete Button Styles */
+        .post-menu {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .post-menu:hover {
+            background: rgba(0,0,0,0.05);
+        }
+
+        .post-menu::after {
+            content: "⋯";
+            font-size: 24px;
+            transform: rotate(90deg);
+            display: block;
+            color: #999;
+            line-height: 0.5;
+        }
+
+        .delete-btn {
+            position: absolute;
+            top: 40px;
+            right: 15px;
+            background: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            cursor: pointer;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.2s ease;
+            border: none;
+            color: #ff4444;
+            font-weight: 500;
+        }
+
+        .delete-btn.show {
+            opacity: 1;
+            transform: translateY(0);
         }
 
         /* ========== EXISTING COMPONENTS ========== */
@@ -275,7 +326,7 @@
             });
         });
 
-        // Local storage management with enhanced error handling
+        // Local storage management
         let entries;
         try {
             entries = JSON.parse(localStorage.getItem('soulboardEntries')) || [];
@@ -290,7 +341,7 @@
                 entries.length > 0 ? 'none' : 'block';
         }
 
-        // Debounced search functionality
+        // Search functionality
         let searchTimeout;
         document.getElementById('searchInput').addEventListener('input', (e) => {
             clearTimeout(searchTimeout);
@@ -303,7 +354,7 @@
             }, 300);
         });
 
-        // Post functionality with guaranteed persistence
+        // Post functionality
         document.querySelector('.post-btn').addEventListener('click', async () => {
             const btn = document.querySelector('.post-btn');
             const originalText = btn.innerHTML;
@@ -317,22 +368,19 @@
                 const newEntry = {
                     text,
                     date: new Date().toISOString(),
-                    mood: selectedMood || '📝'
+                    mood: selectedMood || '📝',
+                    id: Date.now().toString()
                 };
 
-                // Create new array reference to force state update
-                const newEntries = [newEntry, ...entries];
+                const newEntries = [...entries, newEntry];
                 
-                // Double-check localStorage write
                 try {
                     localStorage.setItem('soulboardEntries', JSON.stringify(newEntries));
-                    localStorage.getItem('soulboardEntries'); // Force read verification
                 } catch (e) {
                     alert('Storage Error: Entry not saved. Please try again.');
                     throw new Error('LocalStorage write failed');
                 }
 
-                // Update state only after successful write
                 entries = newEntries;
                 addPostToFeed(newEntry);
                 textArea.value = '';
@@ -341,16 +389,27 @@
                 updateEmptyState();
             } catch (e) {
                 console.error('Posting Error:', e);
-                if(e.message.includes('LocalStorage')) return;
             } finally {
                 btn.innerHTML = originalText;
             }
         });
 
+        // Delete functionality
+        function handleDelete(postId) {
+            const newEntries = entries.filter(entry => entry.id !== postId);
+            localStorage.setItem('soulboardEntries', JSON.stringify(newEntries));
+            entries = newEntries;
+            document.querySelector(`[data-id="${postId}"]`).remove();
+            updateEmptyState();
+        }
+
         function addPostToFeed(entry) {
             const post = document.createElement('div');
             post.className = 'post';
+            post.dataset.id = entry.id;
             post.innerHTML = `
+                <div class="post-menu"></div>
+                <button class="delete-btn">Delete</button>
                 <div class="post-date">${new Date(entry.date).toLocaleDateString('en-US', { 
                     weekday: 'short', 
                     month: 'short', 
@@ -361,12 +420,27 @@
                 <div class="post-mood">${entry.mood}</div>
                 <div class="post-content">${entry.text}</div>
             `;
+
+            const menu = post.querySelector('.post-menu');
+            const deleteBtn = post.querySelector('.delete-btn');
+
+            menu.addEventListener('click', (e) => {
+                e.stopPropagation();
+                deleteBtn.classList.toggle('show');
+            });
+
+            deleteBtn.addEventListener('click', () => handleDelete(entry.id));
+
+            document.addEventListener('click', () => {
+                deleteBtn.classList.remove('show');
+            });
+
             const feed = document.getElementById('feed');
-            feed.insertBefore(post, feed.firstChild);
+            feed.prepend(post);
         }
 
-        // Load entries with browser compatibility fix
-        entries.slice().reverse().forEach(entry => addPostToFeed(entry));
+        // Load existing entries
+        entries.forEach(entry => addPostToFeed(entry));
         updateEmptyState();
     </script>
 </body>
