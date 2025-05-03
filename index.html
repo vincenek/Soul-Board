@@ -3,17 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SoulBoard Pro | Secure Mental Journal</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌥️</text></svg>">
+    <title>SoulBoard | Nature-Inspired Journal</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌿</text></svg>">
     <style>
         :root {
-            --primary: #6366F1;
-            --secondary: #EC4899;
-            --background: #F8FAFC;
-            --text: #1E293B;
-            --border: #E2E8F0;
-            --error: #EF4444;
-            --success: #10B981;
+            --primary: #2A9D8F;
+            --secondary: #E9C46A;
+            --background: #F4F9F7;
+            --text: #264653;
+            --border: #C4D8D2;
+            --accent: #83C5BE;
         }
 
         * {
@@ -24,9 +23,9 @@
         }
 
         body {
-            background: var(--background);
+            background: linear-gradient(160deg, #F4F9F7 0%, #E9F5F1 100%);
             color: var(--text);
-            line-height: 1.5;
+            line-height: 1.6;
             max-width: 680px;
             margin: 0 auto;
             padding: 2rem 1rem;
@@ -35,29 +34,31 @@
         /* Header Section */
         .header {
             text-align: center;
-            margin-bottom: 3rem;
+            margin-bottom: 2rem;
             animation: fadeIn 0.8s ease-out;
         }
 
         .logo {
             font-size: 3.2rem;
             margin-bottom: 0.5rem;
+            color: var(--primary);
         }
 
         .tagline {
-            color: #64748B;
+            color: #5C8374;
             font-size: 1.1rem;
-            font-weight: 400;
+            font-weight: 500;
             letter-spacing: -0.02em;
         }
 
         /* Journal Container */
         .journal-container {
-            background: white;
+            background: rgba(255, 255, 255, 0.9);
             border-radius: 1rem;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.04);
+            box-shadow: 0 8px 32px rgba(42, 157, 143, 0.08);
             padding: 2rem;
             margin-bottom: 2rem;
+            backdrop-filter: blur(4px);
         }
 
         /* Editor Section */
@@ -71,12 +72,13 @@
             font-size: 1rem;
             resize: vertical;
             transition: all 0.2s ease;
+            background: rgba(244, 249, 247, 0.8);
         }
 
         .editor textarea:focus {
             outline: none;
             border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+            box-shadow: 0 0 0 3px rgba(42, 157, 143, 0.1);
         }
 
         /* Mood Selector */
@@ -91,7 +93,7 @@
             padding: 0.6rem;
             border: 2px solid var(--border);
             border-radius: 0.6rem;
-            background: white;
+            background: rgba(244, 249, 247, 0.8);
             cursor: pointer;
             transition: all 0.2s ease;
             display: flex;
@@ -108,7 +110,7 @@
 
         /* Post Button */
         .post-btn {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            background: linear-gradient(135deg, var(--primary) 0%, #34A798 100%);
             color: white;
             border: none;
             border-radius: 0.6rem;
@@ -117,24 +119,45 @@
             font-size: 1rem;
             font-weight: 500;
             cursor: pointer;
-            transition: opacity 0.2s ease;
+            transition: transform 0.2s ease;
         }
 
         .post-btn:hover {
-            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        /* Search Bar */
+        .search-container {
+            margin: 1.5rem 0;
+        }
+
+        .search-bar {
+            width: 100%;
+            padding: 0.8rem 1.2rem;
+            border: 2px solid var(--border);
+            border-radius: 0.6rem;
+            font-size: 1rem;
+            background: rgba(244, 249, 247, 0.8);
+            transition: all 0.2s ease;
+        }
+
+        .search-bar:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(42, 157, 143, 0.1);
         }
 
         /* Posts Feed */
         .posts-feed {
-            margin-top: 2rem;
+            margin-top: 1rem;
         }
 
         .post-card {
-            background: white;
+            background: rgba(255, 255, 255, 0.9);
             padding: 1.5rem;
             border-radius: 0.8rem;
             margin-bottom: 1.2rem;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.03);
+            box-shadow: 0 2px 12px rgba(42, 157, 143, 0.05);
             position: relative;
             transition: transform 0.2s ease;
         }
@@ -151,7 +174,7 @@
         }
 
         .post-date {
-            color: #64748B;
+            color: #5C8374;
             font-size: 0.85rem;
             font-weight: 500;
         }
@@ -164,64 +187,15 @@
             white-space: pre-wrap;
             line-height: 1.5;
             margin: 1rem 0;
-        }
-
-        /* Search Bar */
-        .search-bar {
-            width: 100%;
-            padding: 0.8rem 1rem;
-            border: 2px solid var(--border);
-            border-radius: 0.6rem;
-            margin-bottom: 1.5rem;
-            font-size: 1rem;
-            transition: all 0.2s ease;
-        }
-
-        .search-bar:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-        }
-
-        /* Delete Button */
-        .delete-btn {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-            background: none;
-            border: none;
-            color: var(--error);
-            cursor: pointer;
-            padding: 0.4rem;
-            border-radius: 0.4rem;
-            transition: background 0.2s ease;
-            display: flex;
-            align-items: center;
-        }
-
-        .delete-btn:hover {
-            background: rgba(239, 68, 68, 0.1);
+            color: #2D3E40;
         }
 
         /* Empty State */
         .empty-state {
             text-align: center;
             padding: 3rem;
-            color: #94A3B8;
-        }
-
-        /* Pro Banner */
-        .pro-banner {
-            background: linear-gradient(135deg, var(--primary) 0%, #818CF8 100%);
-            color: white;
-            padding: 0.8rem;
-            text-align: center;
-            border-radius: 0.6rem;
-            margin: -1rem -1rem 2rem;
-            position: sticky;
-            top: 1rem;
-            z-index: 100;
-            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.2);
+            color: #83A69B;
+            font-style: italic;
         }
 
         @keyframes fadeIn {
@@ -231,45 +205,42 @@
     </style>
 </head>
 <body>
-    <div class="pro-banner">
-        🚀 PRO Version Coming Q4 2026: Military-Grade Encryption & AI Analysis
-    </div>
-
     <header class="header">
-        <div class="logo">🌥️</div>
-        <h1 class="tagline">SoulBoard Pro - Private Thought Journal</h1>
+        <div class="logo">🌿</div>
+        <h1 class="tagline">Nature's Thought Journal</h1>
     </header>
 
     <main class="journal-container">
         <section class="editor">
-            <input type="text" class="search-bar" placeholder="Search entries..." id="searchInput">
-            
-            <textarea 
-                placeholder="Express your thoughts freely..."></textarea>
+            <textarea placeholder="What's growing in your mind today?"></textarea>
             
             <div class="mood-grid">
-                <button class="mood-btn" data-mood="😊 Happy">😊 Happy</button>
-                <button class="mood-btn" data-mood="😐 Neutral">😐 Neutral</button>
-                <button class="mood-btn" data-mood="😢 Sad">😢 Sad</button>
+                <button class="mood-btn" data-mood="🌻 Happy">🌻 Happy</button>
+                <button class="mood-btn" data-mood="🍃 Calm">🍃 Calm</button>
+                <button class="mood-btn" data-mood="🌧️ Reflective">🌧️ Reflective</button>
                 <button class="mood-btn" data-mood="💡 Inspired">💡 Inspired</button>
-                <button class="mood-btn" data-mood="🌪 Anxious">🌪 Anxious</button>
-                <button class="mood-btn" data-mood="😡 Angry">😡 Angry</button>
-                <button class="mood-btn" data-mood="😴 Tired">😴 Tired</button>
+                <button class="mood-btn" data-mood="🌊 Flow">🌊 Flow</button>
+                <button class="mood-btn" data-mood="🔥 Passionate">🔥 Passionate</button>
+                <button class="mood-btn" data-mood="🌙 Restful">🌙 Restful</button>
                 <button class="mood-btn" data-mood="🎉 Celebratory">🎉 Celebratory</button>
             </div>
 
-            <button class="post-btn">Add Entry</button>
+            <button class="post-btn">Plant This Thought</button>
+
+            <div class="search-container">
+                <input type="text" class="search-bar" placeholder="Search your garden of thoughts..." id="searchInput">
+            </div>
         </section>
 
         <section class="posts-feed" id="postsFeed">
             <div class="empty-state" id="emptyState">
-                ✨ Your journal is empty. Start your healing journey.
+                Your mental garden is empty... Plant your first thought seed
             </div>
         </section>
     </main>
 
     <script>
-        class SoulBoardPro {
+        class NatureJournal {
             constructor() {
                 this.entries = this.loadEntries();
                 this.init();
@@ -283,7 +254,7 @@
 
             loadEntries() {
                 try {
-                    return JSON.parse(localStorage.getItem('soulboardEntries')) || [];
+                    return JSON.parse(localStorage.getItem('natureJournal')) || [];
                 } catch (error) {
                     console.error('Storage error:', error);
                     return [];
@@ -291,16 +262,13 @@
             }
 
             saveEntries() {
-                localStorage.setItem('soulboardEntries', JSON.stringify(this.entries));
+                localStorage.setItem('natureJournal', JSON.stringify(this.entries));
             }
 
             bindEvents() {
                 document.querySelector('.post-btn').addEventListener('click', () => this.createPost());
                 document.querySelectorAll('.mood-btn').forEach(btn => 
                     btn.addEventListener('click', () => this.toggleMood(btn)));
-                document.getElementById('postsFeed').addEventListener('click', (e) => {
-                    if (e.target.closest('.delete-btn')) this.deletePost(e);
-                });
             }
 
             toggleMood(btn) {
@@ -311,7 +279,7 @@
 
             createPost() {
                 const text = document.querySelector('textarea').value.trim();
-                const mood = document.querySelector('.mood-btn.active')?.dataset.mood || '📝 Neutral';
+                const mood = document.querySelector('.mood-btn.active')?.dataset.mood || '🌱 Neutral';
                 
                 if (!text) return;
 
@@ -327,13 +295,6 @@
                 this.saveEntries();
                 this.renderPosts();
                 this.resetForm();
-            }
-
-            deletePost(e) {
-                const postId = Number(e.target.closest('.post-card').dataset.id);
-                this.entries = this.entries.filter(entry => entry.id !== postId);
-                this.saveEntries();
-                this.renderPosts();
             }
 
             setupSearch() {
@@ -366,7 +327,6 @@
                 entries.forEach(entry => {
                     const post = document.createElement('div');
                     post.className = 'post-card';
-                    post.dataset.id = entry.id;
                     post.innerHTML = `
                         <div class="post-meta">
                             <div class="post-date">
@@ -378,7 +338,6 @@
                             <div class="post-mood">${entry.mood}</div>
                         </div>
                         <div class="post-content">${entry.text}</div>
-                        <button class="delete-btn">🗑️ Delete</button>
                     `;
                     feed.appendChild(post);
                 });
@@ -388,11 +347,12 @@
                 document.querySelector('textarea').value = '';
                 document.querySelectorAll('.mood-btn').forEach(btn => 
                     btn.classList.remove('active'));
+                document.querySelector('textarea').focus();
             }
         }
 
-        // Initialize SoulBoard Pro
-        const soulBoard = new SoulBoardPro();
+        // Initialize Journal
+        const journal = new NatureJournal();
     </script>
 </body>
 </html>
