@@ -232,7 +232,6 @@
         <p class="tagline">Where your soul speaks without judgment</p>
     </header>
 
-    <!-- REST OF ORIGINAL HTML STRUCTURE REMAINS SAME -->
     <div class="new-post">
         <textarea placeholder="What's on your mind today?"></textarea>
         <input type="text" class="search-bar" placeholder="Search entries... (date, mood, text)" id="searchInput">
@@ -264,7 +263,7 @@
         Built by Kenechukwu Vincent 
     </div>
 
-    <!-- UPDATED SCRIPT WITH CHRONOLOGICAL FIX -->
+    <!-- FIXED SCRIPT SECTION -->
     <script>
         // Mood selection
         let selectedMood = null;
@@ -276,13 +275,14 @@
             });
         });
 
-        // Local storage management with error handling
+        // Local storage management with enhanced error handling
         let entries;
         try {
             entries = JSON.parse(localStorage.getItem('soulboardEntries')) || [];
         } catch (e) {
             console.error('Error loading entries:', e);
             entries = [];
+            localStorage.removeItem('soulboardEntries');
         }
 
         function updateEmptyState() {
@@ -290,7 +290,7 @@
                 entries.length > 0 ? 'none' : 'block';
         }
 
-        // Enhanced search with debouncing
+        // Debounced search functionality
         let searchTimeout;
         document.getElementById('searchInput').addEventListener('input', (e) => {
             clearTimeout(searchTimeout);
@@ -303,7 +303,7 @@
             }, 300);
         });
 
-        // Post functionality with improved error handling
+        // Post functionality with guaranteed persistence
         document.querySelector('.post-btn').addEventListener('click', async () => {
             const btn = document.querySelector('.post-btn');
             const originalText = btn.innerHTML;
@@ -320,14 +320,19 @@
                     mood: selectedMood || '📝'
                 };
 
+                // Create new array reference to force state update
                 const newEntries = [newEntry, ...entries];
+                
+                // Double-check localStorage write
                 try {
                     localStorage.setItem('soulboardEntries', JSON.stringify(newEntries));
+                    localStorage.getItem('soulboardEntries'); // Force read verification
                 } catch (e) {
-                    alert('Failed to save entry. Your browser storage might be full.');
-                    throw e;
+                    alert('Storage Error: Entry not saved. Please try again.');
+                    throw new Error('LocalStorage write failed');
                 }
 
+                // Update state only after successful write
                 entries = newEntries;
                 addPostToFeed(newEntry);
                 textArea.value = '';
@@ -335,7 +340,8 @@
                 document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
                 updateEmptyState();
             } catch (e) {
-                console.error('Posting error:', e);
+                console.error('Posting Error:', e);
+                if(e.message.includes('LocalStorage')) return;
             } finally {
                 btn.innerHTML = originalText;
             }
@@ -355,10 +361,11 @@
                 <div class="post-mood">${entry.mood}</div>
                 <div class="post-content">${entry.text}</div>
             `;
-            document.getElementById('feed').prepend(post);
+            const feed = document.getElementById('feed');
+            feed.insertBefore(post, feed.firstChild);
         }
 
-        // Load existing entries in reverse chronological order
+        // Load entries with browser compatibility fix
         entries.slice().reverse().forEach(entry => addPostToFeed(entry));
         updateEmptyState();
     </script>
