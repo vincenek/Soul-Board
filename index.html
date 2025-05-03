@@ -6,12 +6,13 @@
     <title>SoulBoard</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌥️</text></svg>">
     <style>
-        /* ========== ORIGINAL STYLES ========== */
+        /* ========== ENHANCED STYLES ========== */
         :root {
             --primary: #8B93FF;
             --secondary: #FFA1F5;
             --background: #FAF9F6;
             --text: #333;
+            --accent: #FFD700;
         }
 
         * {
@@ -19,10 +20,11 @@
             margin: 0;
             padding: 0;
             font-family: 'Segoe UI', sans-serif;
+            transition: all 0.3s ease;
         }
 
         body {
-            background-color: var(--background);
+            background: linear-gradient(135deg, #FAF9F6 0%, #F0F5FF 100%);
             color: var(--text);
             line-height: 1.6;
             max-width: 600px;
@@ -36,39 +38,45 @@
             animation: fadeIn 1s ease-in;
         }
 
-        h1 {
-            color: var(--primary);
-            font-size: 2.5rem;
-            margin-bottom: 0.5rem;
-        }
-
-        h1::before {
-            content: "🌥️ ";
+        .logo {
+            width: 180px;
+            margin-bottom: 1rem;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+            animation: float 3s ease-in-out infinite;
         }
 
         .tagline {
             color: #666;
             font-size: 1.1rem;
             margin-bottom: 1.5rem;
+            letter-spacing: 0.5px;
         }
 
         .new-post {
-            background: white;
+            background: rgba(255,255,255,0.95);
             padding: 1.5rem;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
             margin-bottom: 2rem;
+            backdrop-filter: blur(5px);
         }
 
         textarea {
             width: 100%;
-            padding: 1rem;
+            padding: 1.2rem;
             border: 2px solid #eee;
-            border-radius: 8px;
+            border-radius: 12px;
             resize: vertical;
-            min-height: 120px;
+            min-height: 130px;
             margin-bottom: 1.5rem;
             font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        textarea:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(139, 147, 255, 0.2);
         }
 
         .search-bar {
@@ -78,107 +86,121 @@
             border: 2px solid #eee;
             border-radius: 8px;
             font-size: 1rem;
+            background: rgba(255,255,255,0.9);
         }
 
         .mood-selector {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
+            gap: 10px;
             margin-bottom: 1.5rem;
         }
 
         .mood-btn {
-            padding: 8px 12px;
+            padding: 10px 15px;
             border: none;
-            border-radius: 20px;
+            border-radius: 25px;
             background: #f0f0f0;
             cursor: pointer;
-            transition: transform 0.2s, opacity 0.2s;
+            transition: all 0.2s;
+            font-weight: 500;
         }
 
         .mood-btn:hover {
-            transform: scale(1.05);
-        }
-
-        .mood-btn:active {
-            transform: scale(0.95);
+            transform: translateY(-2px);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.1);
         }
 
         .mood-btn.selected {
-            background: var(--primary);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
             color: white;
         }
 
         .post-btn {
-            background: var(--primary);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
             color: white;
-            padding: 12px 25px;
+            padding: 14px 30px;
             border: none;
-            border-radius: 25px;
+            border-radius: 30px;
             cursor: pointer;
             width: 100%;
-            font-size: 1rem;
-            transition: opacity 0.2s;
-            position: relative;
+            font-size: 1.05rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 15px rgba(139, 147, 255, 0.3);
         }
 
         .post-btn:hover {
-            opacity: 0.9;
+            opacity: 0.95;
+            transform: translateY(-1px);
         }
 
         .post {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 10px;
+            background: rgba(255,255,255,0.95);
+            padding: 1.8rem;
+            border-radius: 15px;
             margin-bottom: 1.5rem;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
             animation: slideUp 0.5s ease-out;
-            transition: box-shadow 0.3s, transform 0.2s;
+            backdrop-filter: blur(5px);
         }
 
         .post:hover {
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            transform: translateY(-2px);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 25px rgba(0,0,0,0.1);
         }
 
         .post-date {
             color: #999;
             font-size: 0.9rem;
             margin-bottom: 0.5rem;
+            font-weight: 500;
         }
 
         .post-mood {
-            font-size: 1.5rem;
+            font-size: 1.6rem;
             margin: 0.5rem 0;
         }
 
-        .post-content {
-            white-space: pre-wrap;
-            margin: 0.5rem 0;
-            line-height: 1.5;
-        }
-
-        .loader {
-            width: 18px;
-            height: 18px;
-            border: 2px solid #fff;
-            border-bottom-color: transparent;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            display: inline-block;
-            vertical-align: middle;
-        }
-
-        #empty-state {
+        /* ========== EXISTING COMPONENTS ========== */
+        .pro-banner {
+            background: linear-gradient(135deg, #FF6B6B 0%, #FF8787 100%);
+            color: white;
+            padding: 12px;
             text-align: center;
-            color: #888;
-            padding: 2rem;
-            display: none;
+            font-size: 0.95rem;
+            border-radius: 12px;
+            margin: -10px -20px 20px;
+            position: sticky;
+            top: 10px;
+            z-index: 100;
+            box-shadow: 0 4px 15px rgba(255,107,107,0.25);
+        }
+
+        .market-footer {
+            text-align: center;
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 3rem;
+            padding: 2rem 0;
+            border-top: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .founder-watermark {
+            position: fixed;
+            bottom: 15px;
+            right: 15px;
+            color: #aaa;
+            font-size: 0.8rem;
+            background: rgba(255,255,255,0.95);
+            padding: 6px 12px;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         @keyframes slideUp {
@@ -190,38 +212,10 @@
             to { transform: rotate(360deg); }
         }
 
-        /* ========== INVESTOR ADDITIONS ========== */
-        .pro-banner {
-            background: #FF6B6B;
-            color: white;
-            padding: 10px;
-            text-align: center;
-            font-size: 0.9rem;
-            border-radius: 8px;
-            margin: -10px -20px 20px;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .market-footer {
-            text-align: center;
-            color: #666;
-            font-size: 0.9rem;
-            margin-top: 3rem;
-            padding: 2rem 0;
-            border-top: 1px solid #eee;
-        }
-
-        .founder-watermark {
-            position: fixed;
-            bottom: 10px;
-            right: 10px;
-            color: #aaa;
-            font-size: 0.8rem;
-            background: rgba(255,255,255,0.9);
-            padding: 4px 8px;
-            border-radius: 4px;
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
         }
     </style>
 </head>
@@ -231,13 +225,13 @@
         🚀 PRO Version Launching Q4 2025: 3-Word Encrypted Vault & AI Insights
     </div>
 
-    <!-- ORIGINAL HEADER -->
+    <!-- UPDATED HEADER WITH NEW LOGO -->
     <header>
-        <h1>SoulBoard</h1>
+        <img src="https://i.postimg.cc/QFDGqDW1/IMG-0438.jpg" alt="SoulBoard Logo" class="logo">
         <p class="tagline">Where your soul speaks without judgment</p>
     </header>
 
-    <!-- ORIGINAL CONTENT -->
+    <!-- REST OF ORIGINAL HTML STRUCTURE REMAINS SAME -->
     <div class="new-post">
         <textarea placeholder="What's on your mind today?"></textarea>
         <input type="text" class="search-bar" placeholder="Search entries... (date, mood, text)" id="searchInput">
@@ -261,17 +255,15 @@
         </div>
     </div>
 
-    <!-- MARKET FOOTER -->
     <div class="market-footer">
         Addressing the $26B mental health tech market
     </div>
 
-    <!-- FOUNDER WATERMARK -->
     <div class="founder-watermark">
         Built by Kenechukwu Vincent Ek
     </div>
 
-    <!-- ORIGINAL SCRIPT -->
+    <!-- SCRIPT SECTION WITH FIXES -->
     <script>
         // Mood selection
         let selectedMood = null;
@@ -283,16 +275,21 @@
             });
         });
 
-        // Local storage management
-        let entries = JSON.parse(localStorage.getItem('soulboardEntries')) || [];
-        
-        // Update empty state visibility
+        // Local storage management with error handling
+        let entries;
+        try {
+            entries = JSON.parse(localStorage.getItem('soulboardEntries')) || [];
+        } catch (e) {
+            console.error('Error loading entries:', e);
+            entries = [];
+        }
+
         function updateEmptyState() {
             document.getElementById('empty-state').style.display = 
                 entries.length > 0 ? 'none' : 'block';
         }
 
-        // Debounced search functionality
+        // Enhanced search with debouncing
         let searchTimeout;
         document.getElementById('searchInput').addEventListener('input', (e) => {
             clearTimeout(searchTimeout);
@@ -305,31 +302,39 @@
             }, 300);
         });
 
-        // Post functionality with loading state
+        // Post functionality with improved error handling
         document.querySelector('.post-btn').addEventListener('click', async () => {
             const btn = document.querySelector('.post-btn');
             const originalText = btn.innerHTML;
+            const textArea = document.querySelector('textarea');
             
             try {
                 btn.innerHTML = '<div class="loader"></div>';
-                const text = document.querySelector('textarea').value.trim();
+                const text = textArea.value.trim();
                 if (!text) return;
 
-                const date = new Date();
-                const entry = {
+                const newEntry = {
                     text,
-                    date: date.toISOString(),
+                    date: new Date().toISOString(),
                     mood: selectedMood || '📝'
                 };
 
-                entries.unshift(entry);
-                localStorage.setItem('soulboardEntries', JSON.stringify(entries));
-                
-                addPostToFeed(entry);
-                document.querySelector('textarea').value = '';
+                const newEntries = [newEntry, ...entries];
+                try {
+                    localStorage.setItem('soulboardEntries', JSON.stringify(newEntries));
+                } catch (e) {
+                    alert('Failed to save entry. Your browser storage might be full.');
+                    throw e;
+                }
+
+                entries = newEntries;
+                addPostToFeed(newEntry);
+                textArea.value = '';
                 selectedMood = null;
                 document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
                 updateEmptyState();
+            } catch (e) {
+                console.error('Posting error:', e);
             } finally {
                 btn.innerHTML = originalText;
             }
@@ -349,12 +354,11 @@
                 <div class="post-mood">${entry.mood}</div>
                 <div class="post-content">${entry.text}</div>
             `;
-            const feed = document.getElementById('feed');
-            feed.insertBefore(post, feed.firstChild);
+            document.getElementById('feed').prepend(post);
         }
 
-        // Load existing entries in correct order
-        entries.slice().reverse().forEach(entry => addPostToFeed(entry));
+        // Load existing entries
+        entries.forEach(entry => addPostToFeed(entry));
         updateEmptyState();
     </script>
 </body>
