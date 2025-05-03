@@ -164,7 +164,6 @@
             margin: 0.5rem 0;
         }
 
-        /* Delete Button Styles */
         .post-menu {
             position: absolute;
             top: 15px;
@@ -214,7 +213,6 @@
             transform: translateY(0);
         }
 
-        /* ========== EXISTING COMPONENTS ========== */
         .pro-banner {
             background: linear-gradient(135deg, #FF6B6B 0%, #FF8787 100%);
             color: white;
@@ -272,12 +270,10 @@
     </style>
 </head>
 <body>
-    <!-- PRO BANNER -->
     <div class="pro-banner">
         🚀 PRO Version Launching Q4 2026: 3-Word Encrypted Vault & AI Insights
     </div>
 
-    <!-- UPDATED HEADER WITH NEW LOGO -->
     <header>
         <img src="https://i.postimg.cc/bsgmtQHM/IMG-0597.jpg" alt="SoulBoard Logo" class="logo">
         <p class="tagline">Where your soul speaks without judgment</p>
@@ -314,9 +310,7 @@
         Built by Kenechukwu Vincent 
     </div>
 
-    <!-- FIXED SCRIPT SECTION -->
     <script>
-        // Mood selection
         let selectedMood = null;
         document.querySelectorAll('.mood-btn').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -326,7 +320,6 @@
             });
         });
 
-        // Local storage management
         let entries;
         try {
             entries = JSON.parse(localStorage.getItem('soulboardEntries')) || [];
@@ -341,7 +334,6 @@
                 entries.length > 0 ? 'none' : 'block';
         }
 
-        // Search functionality
         let searchTimeout;
         document.getElementById('searchInput').addEventListener('input', (e) => {
             clearTimeout(searchTimeout);
@@ -354,7 +346,6 @@
             }, 300);
         });
 
-        // Post functionality
         document.querySelector('.post-btn').addEventListener('click', async () => {
             const btn = document.querySelector('.post-btn');
             const originalText = btn.innerHTML;
@@ -372,7 +363,7 @@
                     id: Date.now().toString()
                 };
 
-                const newEntries = [...entries, newEntry];
+                const newEntries = [newEntry, ...entries];
                 
                 try {
                     localStorage.setItem('soulboardEntries', JSON.stringify(newEntries));
@@ -394,7 +385,6 @@
             }
         });
 
-        // Delete functionality
         function handleDelete(postId) {
             const newEntries = entries.filter(entry => entry.id !== postId);
             localStorage.setItem('soulboardEntries', JSON.stringify(newEntries));
@@ -436,10 +426,10 @@
             });
 
             const feed = document.getElementById('feed');
-            feed.prepend(post);
+            feed.insertBefore(post, feed.firstChild);
         }
 
-        // Load existing entries
+        // Load entries in reverse chronological order
         entries.forEach(entry => addPostToFeed(entry));
         updateEmptyState();
     </script>
