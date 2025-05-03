@@ -39,10 +39,11 @@
         }
 
         .logo {
-            width: 180px;
+            width: 220px;
             margin-bottom: 1rem;
             filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
             animation: float 3s ease-in-out infinite;
+            border-radius: 15px;
         }
 
         .tagline {
@@ -222,12 +223,12 @@
 <body>
     <!-- PRO BANNER -->
     <div class="pro-banner">
-        🚀 PRO Version Launching Q4 2025: 3-Word Encrypted Vault & AI Insights
+        🚀 PRO Version Launching Q4 2026: 3-Word Encrypted Vault & AI Insights
     </div>
 
     <!-- UPDATED HEADER WITH NEW LOGO -->
     <header>
-        <img src="https://i.postimg.cc/QFDGqDW1/IMG-0438.jpg" alt="SoulBoard Logo" class="logo">
+        <img src="https://i.postimg.cc/bsgmtQHM/IMG-0597.jpg" alt="SoulBoard Logo" class="logo">
         <p class="tagline">Where your soul speaks without judgment</p>
     </header>
 
@@ -260,10 +261,10 @@
     </div>
 
     <div class="founder-watermark">
-        Built by Kenechukwu Vincent Ek
+        Built by Kenechukwu Vincent 
     </div>
 
-    <!-- SCRIPT SECTION WITH FIXES -->
+    <!-- UPDATED SCRIPT WITH CHRONOLOGICAL FIX -->
     <script>
         // Mood selection
         let selectedMood = null;
@@ -357,8 +358,8 @@
             document.getElementById('feed').prepend(post);
         }
 
-        // Load existing entries
-        entries.forEach(entry => addPostToFeed(entry));
+        // Load existing entries in reverse chronological order
+        entries.slice().reverse().forEach(entry => addPostToFeed(entry));
         updateEmptyState();
     </script>
 </body>
