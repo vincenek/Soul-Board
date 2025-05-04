@@ -3,359 +3,415 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SoulBoard</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌥️</text></svg>">
+    <title>SoulBoard Pro | Mental Wellness Journal</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌿</text></svg>">
     <style>
-        /* ========== ORIGINAL STYLES ========== */
         :root {
-            --primary: #8B93FF;
-            --secondary: #FFA1F5;
-            --background: #FAF9F6;
-            --text: #333;
+            --primary: #2A9D8F;
+            --secondary: #E9C46A;
+            --background: #F4F9F7;
+            --text: #264653;
+            --border: #C4D8D2;
+            --accent: #83C5BE;
+            --error: #E76F51;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', sans-serif;
+            font-family: 'Inter', system-ui, sans-serif;
         }
 
         body {
-            background-color: var(--background);
+            background: linear-gradient(160deg, #F4F9F7 0%, #E9F5F1 100%);
             color: var(--text);
             line-height: 1.6;
-            max-width: 600px;
+            max-width: 680px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 2rem 1rem;
+            min-height: 100vh;
         }
 
-        header {
+        .header {
             text-align: center;
-            margin: 2rem 0;
-            animation: fadeIn 1s ease-in;
+            margin-bottom: 2rem;
+            animation: fadeIn 0.8s ease-out;
         }
 
-        h1 {
-            color: var(--primary);
-            font-size: 2.5rem;
+        .logo {
+            font-size: 3.2rem;
             margin-bottom: 0.5rem;
-        }
-
-        h1::before {
-            content: "🌥️ ";
+            color: var(--primary);
         }
 
         .tagline {
-            color: #666;
+            color: #5C8374;
             font-size: 1.1rem;
-            margin-bottom: 1.5rem;
+            font-weight: 500;
+            letter-spacing: -0.02em;
         }
 
-        .new-post {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        .journal-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 1rem;
+            box-shadow: 0 8px 32px rgba(42, 157, 143, 0.08);
+            padding: 2rem;
             margin-bottom: 2rem;
+            backdrop-filter: blur(4px);
         }
 
-        textarea {
+        .editor textarea {
             width: 100%;
-            padding: 1rem;
-            border: 2px solid #eee;
-            border-radius: 8px;
-            resize: vertical;
-            min-height: 120px;
+            padding: 1.2rem;
+            border: 2px solid var(--border);
+            border-radius: 0.8rem;
+            min-height: 140px;
             margin-bottom: 1.5rem;
             font-size: 1rem;
+            resize: vertical;
+            transition: all 0.2s ease;
+            background: rgba(244, 249, 247, 0.8);
         }
 
-        .search-bar {
-            margin: 1rem 0;
-            padding: 12px;
-            width: 100%;
-            border: 2px solid #eee;
-            border-radius: 8px;
-            font-size: 1rem;
+        .editor textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(42, 157, 143, 0.1);
         }
 
-        .mood-selector {
+        .mood-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 0.8rem;
             margin-bottom: 1.5rem;
         }
 
         .mood-btn {
-            padding: 8px 12px;
-            border: none;
-            border-radius: 20px;
-            background: #f0f0f0;
+            padding: 0.6rem;
+            border: 2px solid var(--border);
+            border-radius: 0.6rem;
+            background: rgba(244, 249, 247, 0.8);
             cursor: pointer;
-            transition: transform 0.2s, opacity 0.2s;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
         }
 
-        .mood-btn:hover {
-            transform: scale(1.05);
-        }
-
-        .mood-btn:active {
-            transform: scale(0.95);
-        }
-
-        .mood-btn.selected {
+        .mood-btn.active {
             background: var(--primary);
             color: white;
+            border-color: var(--primary);
         }
 
         .post-btn {
-            background: var(--primary);
+            background: linear-gradient(135deg, var(--primary) 0%, #34A798 100%);
             color: white;
-            padding: 12px 25px;
             border: none;
-            border-radius: 25px;
-            cursor: pointer;
+            border-radius: 0.6rem;
+            padding: 1rem 2rem;
             width: 100%;
             font-size: 1rem;
-            transition: opacity 0.2s;
-            position: relative;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.2s ease;
         }
 
         .post-btn:hover {
-            opacity: 0.9;
+            transform: translateY(-1px);
         }
 
-        .post {
-            background: white;
+        .search-container {
+            margin: 1.5rem 0;
+        }
+
+        .search-bar {
+            width: 100%;
+            padding: 0.8rem 1.2rem;
+            border: 2px solid var(--border);
+            border-radius: 0.6rem;
+            font-size: 1rem;
+            background: rgba(244, 249, 247, 0.8);
+            transition: all 0.2s ease;
+        }
+
+        .search-bar:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(42, 157, 143, 0.1);
+        }
+
+        .posts-feed {
+            margin-top: 1rem;
+        }
+
+        .post-card {
+            background: rgba(255, 255, 255, 0.95);
             padding: 1.5rem;
-            border-radius: 10px;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            animation: slideUp 0.5s ease-out;
-            transition: box-shadow 0.3s, transform 0.2s;
+            border-radius: 0.8rem;
+            margin-bottom: 1.2rem;
+            box-shadow: 0 2px 12px rgba(42, 157, 143, 0.05);
+            transition: transform 0.2s ease;
         }
 
-        .post:hover {
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        .post-card:hover {
             transform: translateY(-2px);
         }
 
+        .post-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.8rem;
+        }
+
         .post-date {
-            color: #999;
-            font-size: 0.9rem;
-            margin-bottom: 0.5rem;
+            color: #5C8374;
+            font-size: 0.85rem;
+            font-weight: 500;
         }
 
         .post-mood {
-            font-size: 1.5rem;
-            margin: 0.5rem 0;
+            font-size: 1.4rem;
         }
 
         .post-content {
             white-space: pre-wrap;
-            margin: 0.5rem 0;
             line-height: 1.5;
+            margin: 1rem 0;
+            color: #2D3E40;
         }
 
-        .loader {
-            width: 18px;
-            height: 18px;
-            border: 2px solid #fff;
-            border-bottom-color: transparent;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            display: inline-block;
-            vertical-align: middle;
+        .highlight {
+            background-color: rgba(233, 196, 106, 0.3);
+            padding: 0.1em 0.3em;
+            border-radius: 0.3em;
         }
 
-        #empty-state {
+        .empty-state {
             text-align: center;
-            color: #888;
-            padding: 2rem;
-            display: none;
+            padding: 3rem;
+            color: #83A69B;
+            font-style: italic;
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        @keyframes slideUp {
-            from { transform: translateY(20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        /* ========== INVESTOR ADDITIONS ========== */
-        .pro-banner {
-            background: #FF6B6B;
-            color: white;
-            padding: 10px;
-            text-align: center;
-            font-size: 0.9rem;
-            border-radius: 8px;
-            margin: -10px -20px 20px;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .market-footer {
-            text-align: center;
-            color: #666;
-            font-size: 0.9rem;
-            margin-top: 3rem;
-            padding: 2rem 0;
-            border-top: 1px solid #eee;
-        }
-
-        .founder-watermark {
-            position: fixed;
-            bottom: 10px;
-            right: 10px;
-            color: #aaa;
-            font-size: 0.8rem;
-            background: rgba(255,255,255,0.9);
-            padding: 4px 8px;
-            border-radius: 4px;
+        @media (max-width: 480px) {
+            body {
+                padding: 1rem;
+            }
+            
+            .journal-container {
+                padding: 1.5rem;
+            }
+            
+            .mood-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
     </style>
 </head>
 <body>
-    <!-- PRO BANNER -->
-    <div class="pro-banner">
-        🚀 PRO Version Launching Q4 2026: 3-Word Encrypted Vault & AI Insights
-    </div>
-
-    <!-- ORIGINAL HEADER -->
-    <header>
-        <h1>SoulBoard</h1>
-        <p class="tagline">Where your soul speaks without judgment</p>
+    <header class="header">
+        <div class="logo">🌿</div>
+        <h1 class="tagline">Mindful Nature Journal</h1>
     </header>
 
-    <!-- ORIGINAL CONTENT -->
-    <div class="new-post">
-        <textarea placeholder="What's on your mind today?"></textarea>
-        <input type="text" class="search-bar" placeholder="Search entries... (date, mood, text)" id="searchInput">
-        <div class="mood-selector">
-            <button class="mood-btn">😊 Happy</button>
-            <button class="mood-btn">😐 Meh</button>
-            <button class="mood-btn">😢 Sad</button>
-            <button class="mood-btn">💡 Inspired</button>
-            <button class="mood-btn">🌪 Anxious</button>
-            <button class="mood-btn">😡 Angry</button>
-            <button class="mood-btn">😴 Tired</button>
-            <button class="mood-btn">🎉 Celebratory</button>
-        </div>
-        <button class="post-btn">Add to SoulBoard</button>
-    </div>
-
-    <div id="feed">
-        <div id="empty-state">
-            ✨ Your soul's feed is empty...<br>
-            Be the first to share your thoughts!
-        </div>
-    </div>
-
-    <!-- MARKET FOOTER -->
-    <div class="market-footer">
-        Addressing the $26B mental health tech market
-    </div>
-
-    <!-- FOUNDER WATERMARK -->
-    <div class="founder-watermark">
-        Built by Kenechukwu Vincent 
-    </div>
-
-    <!-- ORIGINAL SCRIPT -->
-    <script>
-        // Mood selection
-        let selectedMood = null;
-        document.querySelectorAll('.mood-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
-                btn.classList.add('selected');
-                selectedMood = btn.textContent;
-            });
-        });
-
-        // Local storage management
-        let entries = JSON.parse(localStorage.getItem('soulboardEntries')) || [];
-        
-        // Update empty state visibility
-        function updateEmptyState() {
-            document.getElementById('empty-state').style.display = 
-                entries.length > 0 ? 'none' : 'block';
-        }
-
-        // Debounced search functionality
-        let searchTimeout;
-        document.getElementById('searchInput').addEventListener('input', (e) => {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-                const query = e.target.value.toLowerCase();
-                document.querySelectorAll('.post').forEach(post => {
-                    const text = post.innerText.toLowerCase();
-                    post.style.display = text.includes(query) ? 'block' : 'none';
-                });
-            }, 300);
-        });
-
-        // Post functionality with loading state
-        document.querySelector('.post-btn').addEventListener('click', async () => {
-            const btn = document.querySelector('.post-btn');
-            const originalText = btn.innerHTML;
+    <main class="journal-container">
+        <section class="editor">
+            <textarea aria-label="Journal entry content"></textarea>
             
-            try {
-                btn.innerHTML = '<div class="loader"></div>';
-                const text = document.querySelector('textarea').value.trim();
-                if (!text) return;
+            <div class="mood-grid">
+                <button class="mood-btn" data-mood="🌻 Happy">🌻 Happy</button>
+                <button class="mood-btn" data-mood="🍃 Calm">🍃 Calm</button>
+                <button class="mood-btn" data-mood="🌧️ Reflective">🌧️ Reflective</button>
+                <button class="mood-btn" data-mood="💡 Inspired">💡 Inspired</button>
+                <button class="mood-btn" data-mood="🌊 Flow">🌊 Flow</button>
+                <button class="mood-btn" data-mood="🔥 Passionate">🔥 Passionate</button>
+                <button class="mood-btn" data-mood="🌙 Restful">🌙 Restful</button>
+                <button class="mood-btn" data-mood="🎉 Celebratory">🎉 Celebratory</button>
+            </div>
 
-                const date = new Date();
-                const entry = {
+            <button class="post-btn" aria-label="Create new post">Plant This Thought</button>
+
+            <div class="search-container">
+                <input 
+                    type="text" 
+                    class="search-bar" 
+                    id="searchInput"
+                    aria-label="Search entries">
+            </div>
+        </section>
+
+        <section class="posts-feed" id="postsFeed">
+            <div class="empty-state" id="emptyState">
+                Your mental garden is empty... Plant your first thought seed
+            </div>
+        </section>
+    </main>
+
+    <script>
+        class NatureJournal {
+            constructor() {
+                this.STORAGE_KEY = 'natureJournalV2';
+                this.entries = this.loadEntries();
+                this.init();
+            }
+
+            init() {
+                this.bindEvents();
+                this.renderPosts();
+                this.setupSearch();
+            }
+
+            loadEntries() {
+                try {
+                    const entries = JSON.parse(localStorage.getItem(this.STORAGE_KEY)) || [];
+                    return entries.sort((a, b) => b.id - a.id);
+                } catch (error) {
+                    console.error('Load error:', error);
+                    return [];
+                }
+            }
+
+            saveEntries() {
+                localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.entries));
+            }
+
+            bindEvents() {
+                document.querySelector('.post-btn').addEventListener('click', (e) => {
+                    e.preventDefault();
+                    this.createPost();
+                });
+                
+                document.querySelectorAll('.mood-btn').forEach(btn => 
+                    btn.addEventListener('click', () => this.toggleMood(btn)));
+            }
+
+            toggleMood(btn) {
+                document.querySelectorAll('.mood-btn').forEach(b => 
+                    b.classList.remove('active'));
+                btn.classList.add('active');
+            }
+
+            createPost() {
+                const text = document.querySelector('textarea').value.trim();
+                const mood = document.querySelector('.mood-btn.active')?.dataset.mood || '🌱 Neutral';
+                
+                if (!text) {
+                    this.showError('Please write something before posting!');
+                    return;
+                }
+
+                const newEntry = {
+                    id: Date.now(),
                     text,
-                    date: date.toISOString(),
-                    mood: selectedMood || '📝'
+                    mood,
+                    date: new Date().toISOString()
                 };
 
-                entries.unshift(entry);
-                localStorage.setItem('soulboardEntries', JSON.stringify(entries));
-                
-                addPostToFeed(entry);
-                document.querySelector('textarea').value = '';
-                selectedMood = null;
-                document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
-                updateEmptyState();
-            } finally {
-                btn.innerHTML = originalText;
+                this.entries = [newEntry, ...this.entries];
+                this.saveEntries();
+                this.renderPosts();
+                this.resetForm();
+                document.getElementById('searchInput').value = '';
             }
-        });
 
-        function addPostToFeed(entry) {
-            const post = document.createElement('div');
-            post.className = 'post';
-            post.innerHTML = `
-                <div class="post-date">${new Date(entry.date).toLocaleDateString('en-US', { 
-                    weekday: 'short', 
-                    month: 'short', 
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                })}</div>
-                <div class="post-mood">${entry.mood}</div>
-                <div class="post-content">${entry.text}</div>
-            `;
-            const feed = document.getElementById('feed');
-            feed.insertBefore(post, feed.firstChild);
+            setupSearch() {
+                const searchInput = document.getElementById('searchInput');
+                let searchTimeout;
+                
+                searchInput.addEventListener('input', (e) => {
+                    clearTimeout(searchTimeout);
+                    searchTimeout = setTimeout(() => {
+                        const query = e.target.value.toLowerCase();
+                        document.querySelectorAll('.post-card').forEach(post => {
+                            const text = post.innerText.toLowerCase();
+                            post.style.display = text.includes(query) ? 'block' : 'none';
+                        });
+                    }, 300);
+                });
+            }
+
+            renderPosts() {
+                const feed = document.getElementById('postsFeed');
+                const emptyState = document.getElementById('emptyState');
+                
+                feed.innerHTML = '';
+                emptyState.style.display = this.entries.length ? 'none' : 'block';
+
+                this.entries.forEach(entry => {
+                    const post = document.createElement('div');
+                    post.className = 'post-card';
+                    
+                    const formattedDate = new Date(entry.date).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric'
+                    });
+
+                    post.innerHTML = `
+                        <div class="post-meta">
+                            <div class="post-date">${formattedDate}</div>
+                            <div class="post-mood">${entry.mood}</div>
+                        </div>
+                        <div class="post-content">${entry.text}</div>
+                    `;
+                    feed.appendChild(post);
+                });
+            }
+
+            resetForm() {
+                document.querySelector('textarea').value = '';
+                document.querySelectorAll('.mood-btn').forEach(btn => 
+                    btn.classList.remove('active'));
+                document.querySelector('textarea').focus();
+            }
+
+            showError(message) {
+                const errorEl = document.createElement('div');
+                errorEl.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background: var(--error);
+                    color: white;
+                    padding: 1rem 2rem;
+                    border-radius: 0.5rem;
+                    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                    z-index: 1000;
+                `;
+                errorEl.textContent = message;
+                document.body.appendChild(errorEl);
+                
+                setTimeout(() => {
+                    errorEl.remove();
+                }, 3000);
+            }
         }
 
-        // Load existing entries in correct order
-        entries.slice().reverse().forEach(entry => addPostToFeed(entry));
-        updateEmptyState();
+        try {
+            const journal = new NatureJournal();
+        } catch (error) {
+            console.error('Bootstrap Error:', error);
+            document.body.innerHTML = `
+                <div style="
+                    padding: 2rem;
+                    text-align: center;
+                    color: var(--error);
+                ">
+                    <h1>Critical Error</h1>
+                    <p>Please clear browser data and refresh</p>
+                </div>
+            `;
+        }
     </script>
 </body>
 </html>
