@@ -184,6 +184,12 @@
             color: #2D3E40;
         }
 
+        .highlight {
+            background-color: rgba(233, 196, 106, 0.3);
+            padding: 0.1em 0.3em;
+            border-radius: 0.3em;
+        }
+
         .empty-state {
             text-align: center;
             padding: 3rem;
@@ -219,9 +225,7 @@
 
     <main class="journal-container">
         <section class="editor">
-            <textarea 
-                placeholder="What's growing in your mind today?"
-                aria-label="Journal entry content"></textarea>
+            <textarea aria-label="Journal entry content"></textarea>
             
             <div class="mood-grid">
                 <button class="mood-btn" data-mood="🌻 Happy">🌻 Happy</button>
@@ -240,7 +244,6 @@
                 <input 
                     type="text" 
                     class="search-bar" 
-                    placeholder="Search your garden of thoughts..." 
                     id="searchInput"
                     aria-label="Search entries">
             </div>
@@ -256,56 +259,42 @@
     <script>
         class NatureJournal {
             constructor() {
-                this.STORAGE_KEY = 'natureJournalV2';
+                this.STORAGE_KEY = 'natureJournalV3';
                 this.entries = this.loadEntries();
+                this.searchTerm = '';
                 this.init();
             }
 
             init() {
                 this.bindEvents();
-                this.renderPosts();
+                this.render();
                 this.setupSearch();
-                this.addServiceWorker();
             }
 
-            // Data Management
             loadEntries() {
                 try {
                     const entries = JSON.parse(localStorage.getItem(this.STORAGE_KEY)) || [];
                     return entries.sort((a, b) => b.id - a.id);
-                } catch (error) {
-                    console.error('Load error:', error);
+                } catch {
                     return [];
                 }
             }
 
             saveEntries() {
-                try {
-                    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.entries));
-                } catch (error) {
-                    console.error('Save error:', error);
-                    this.showError('Storage full! Please clear some space.');
-                }
+                localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.entries));
             }
 
-            // Event Handling
             bindEvents() {
-                document.querySelector('.post-btn').addEventListener('click', (e) => {
-                    e.preventDefault();
-                    this.createPost();
-                });
-                
+                document.querySelector('.post-btn').addEventListener('click', () => this.createPost());
                 document.querySelectorAll('.mood-btn').forEach(btn => 
                     btn.addEventListener('click', () => this.toggleMood(btn)));
             }
 
             toggleMood(btn) {
-                document.querySelectorAll('.mood-btn').forEach(b => 
-                    b.classList.remove('active'));
+                document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
             }
 
-            // Core Functionality
             createPost() {
                 const text = document.querySelector('textarea').value.trim();
                 const mood = document.querySelector('.mood-btn.active')?.dataset.mood || '🌱 Neutral';
@@ -319,72 +308,80 @@
                     id: Date.now(),
                     text,
                     mood,
-                    date: new Date().toISOString(),
-                    timestamp: Date.now()
+                    date: new Date().toISOString()
                 };
 
                 this.entries = [newEntry, ...this.entries];
                 this.saveEntries();
-                this.renderPosts();
+                this.searchTerm = '';
+                document.getElementById('searchInput').value = '';
+                this.render();
                 this.resetForm();
             }
 
-            // Search Implementation
             setupSearch() {
                 const searchInput = document.getElementById('searchInput');
-                let timeout;
-                
                 searchInput.addEventListener('input', (e) => {
-                    clearTimeout(timeout);
-                    timeout = setTimeout(() => {
-                        this.filterPosts(e.target.value);
-                    }, 300);
+                    this.searchTerm = e.target.value.toLowerCase().trim();
+                    this.render();
                 });
             }
 
-            filterPosts(query) {
-                const normalizedQuery = query.toLowerCase().trim();
-                const filtered = this.entries.filter(entry => 
-                    entry.text.toLowerCase().includes(normalizedQuery) ||
-                    entry.mood.toLowerCase().includes(normalizedQuery) ||
-                    new Date(entry.date).toLocaleDateString('en-US', {
-                        weekday: 'long',
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                    }).toLowerCase().includes(normalizedQuery)
-                );
-                this.renderPosts(filtered);
+            getFilteredEntries() {
+                if (!this.searchTerm) return this.entries;
+                
+                return this.entries.filter(entry => {
+                    const dateOptions = { month: 'short', day: 'numeric', year: 'numeric' };
+                    const formats = [
+                        new Date(entry.date).toISOString(),
+                        new Date(entry.date).toLocaleDateString('en-US', dateOptions),
+                        entry.text,
+                        entry.mood
+                    ].map(f => f.toLowerCase());
+
+                    return formats.some(f => f.includes(this.searchTerm));
+                });
             }
 
-            // Rendering
-            renderPosts(entries = this.entries) {
+            render() {
+                const filteredEntries = this.getFilteredEntries();
                 const feed = document.getElementById('postsFeed');
                 const emptyState = document.getElementById('emptyState');
                 
                 feed.innerHTML = '';
-                emptyState.style.display = entries.length ? 'none' : 'block';
+                emptyState.style.display = filteredEntries.length ? 'none' : 'block';
 
-                entries.forEach(entry => {
+                filteredEntries.forEach(entry => {
                     const post = document.createElement('div');
                     post.className = 'post-card';
-                    post.innerHTML = `
-                        <div class="post-meta">
-                            <div class="post-date">
-                                ${new Date(entry.date).toLocaleString('en-US', {
-                                    dateStyle: 'medium',
-                                    timeStyle: 'short'
-                                })}
-                            </div>
-                            <div class="post-mood">${entry.mood}</div>
-                        </div>
-                        <div class="post-content">${entry.text}</div>
-                    `;
+                    post.innerHTML = this.createPostHTML(entry);
                     feed.appendChild(post);
                 });
             }
 
-            // Utilities
+            createPostHTML(entry) {
+                const dateOptions = { month: 'short', day: 'numeric', year: 'numeric' };
+                const date = new Date(entry.date).toLocaleDateString('en-US', dateOptions);
+                
+                return `
+                    <div class="post-meta">
+                        <div class="post-date">${this.highlight(this.searchTerm, date)}</div>
+                        <div class="post-mood">${this.highlight(this.searchTerm, entry.mood)}</div>
+                    </div>
+                    <div class="post-content">${this.highlight(this.searchTerm, entry.text)}</div>
+                `;
+            }
+
+            highlight(searchTerm, text) {
+                if (!searchTerm) return text;
+                const regex = new RegExp(`(${this.escapeRegex(searchTerm)})`, 'gi');
+                return text.replace(regex, '<span class="highlight">$1</span>');
+            }
+
+            escapeRegex(string) {
+                return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            }
+
             resetForm() {
                 document.querySelector('textarea').value = '';
                 document.querySelectorAll('.mood-btn').forEach(btn => 
@@ -393,8 +390,8 @@
             }
 
             showError(message) {
-                const errorEl = document.createElement('div');
-                errorEl.style.cssText = `
+                const el = document.createElement('div');
+                el.style.cssText = `
                     position: fixed;
                     top: 20px;
                     left: 50%;
@@ -406,29 +403,16 @@
                     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
                     z-index: 1000;
                 `;
-                errorEl.textContent = message;
-                document.body.appendChild(errorEl);
-                
-                setTimeout(() => {
-                    errorEl.remove();
-                }, 3000);
-            }
-
-            addServiceWorker() {
-                if ('serviceWorker' in navigator) {
-                    window.addEventListener('load', () => {
-                        navigator.serviceWorker.register('/sw.js')
-                            .catch(err => console.log('ServiceWorker registration failed:', err));
-                    });
-                }
+                el.textContent = message;
+                document.body.appendChild(el);
+                setTimeout(() => el.remove(), 3000);
             }
         }
 
-        // Initialize with production-grade error handling
+        // Initialize journal
         try {
-            const journal = new NatureJournal();
-        } catch (error) {
-            console.error('Bootstrap Error:', error);
+            new NatureJournal();
+        } catch {
             document.body.innerHTML = `
                 <div style="
                     padding: 2rem;
