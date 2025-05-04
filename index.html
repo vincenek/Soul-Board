@@ -259,15 +259,15 @@
     <script>
         class NatureJournal {
             constructor() {
-                this.STORAGE_KEY = 'natureJournalV3';
+                this.STORAGE_KEY = 'natureJournalV2';
                 this.entries = this.loadEntries();
-                this.searchTerm = '';
+                this.searchQuery = '';
                 this.init();
             }
 
             init() {
                 this.bindEvents();
-                this.render();
+                this.renderPosts();
                 this.setupSearch();
             }
 
@@ -285,13 +285,20 @@
             }
 
             bindEvents() {
-                document.querySelector('.post-btn').addEventListener('click', () => this.createPost());
+                document.querySelector('.post-btn').addEventListener('click', (e) => {
+                    e.preventDefault();
+                    this.createPost();
+                });
+                
                 document.querySelectorAll('.mood-btn').forEach(btn => 
-                    btn.addEventListener('click', () => this.toggleMood(btn)));
+                    btn.addEventListener('click', () => this.toggleMood(btn))
+                );
             }
 
             toggleMood(btn) {
-                document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.mood-btn').forEach(b => 
+                    b.classList.remove('active')
+                );
                 btn.classList.add('active');
             }
 
@@ -313,68 +320,66 @@
 
                 this.entries = [newEntry, ...this.entries];
                 this.saveEntries();
-                this.searchTerm = '';
+                this.searchQuery = '';
                 document.getElementById('searchInput').value = '';
-                this.render();
+                this.renderPosts();
                 this.resetForm();
             }
 
             setupSearch() {
                 const searchInput = document.getElementById('searchInput');
                 searchInput.addEventListener('input', (e) => {
-                    this.searchTerm = e.target.value.toLowerCase().trim();
-                    this.render();
+                    this.searchQuery = e.target.value.toLowerCase().trim();
+                    this.renderPosts();
                 });
             }
 
-            getFilteredEntries() {
-                if (!this.searchTerm) return this.entries;
-                
-                return this.entries.filter(entry => {
-                    const dateOptions = { month: 'short', day: 'numeric', year: 'numeric' };
-                    const formats = [
-                        new Date(entry.date).toISOString(),
-                        new Date(entry.date).toLocaleDateString('en-US', dateOptions),
-                        entry.text,
-                        entry.mood
-                    ].map(f => f.toLowerCase());
-
-                    return formats.some(f => f.includes(this.searchTerm));
-                });
-            }
-
-            render() {
-                const filteredEntries = this.getFilteredEntries();
+            renderPosts() {
+                const filtered = this.searchQuery ? this.filterEntries() : this.entries;
                 const feed = document.getElementById('postsFeed');
                 const emptyState = document.getElementById('emptyState');
                 
                 feed.innerHTML = '';
-                emptyState.style.display = filteredEntries.length ? 'none' : 'block';
+                emptyState.style.display = filtered.length ? 'none' : 'block';
 
-                filteredEntries.forEach(entry => {
+                filtered.forEach(entry => {
                     const post = document.createElement('div');
                     post.className = 'post-card';
-                    post.innerHTML = this.createPostHTML(entry);
+                    
+                    const dateOptions = { month: 'short', day: 'numeric', year: 'numeric' };
+                    const formattedDate = new Date(entry.date).toLocaleDateString('en-US', dateOptions);
+                    const isoDate = new Date(entry.date).toISOString().split('T')[0];
+
+                    post.innerHTML = `
+                        <div class="post-meta">
+                            <div class="post-date">${this.highlightMatches(formattedDate)}</div>
+                            <div class="post-mood">${this.highlightMatches(entry.mood)}</div>
+                        </div>
+                        <div class="post-content">${this.highlightMatches(entry.text)}</div>
+                    `;
+                    
                     feed.appendChild(post);
                 });
             }
 
-            createPostHTML(entry) {
-                const dateOptions = { month: 'short', day: 'numeric', year: 'numeric' };
-                const date = new Date(entry.date).toLocaleDateString('en-US', dateOptions);
-                
-                return `
-                    <div class="post-meta">
-                        <div class="post-date">${this.highlight(this.searchTerm, date)}</div>
-                        <div class="post-mood">${this.highlight(this.searchTerm, entry.mood)}</div>
-                    </div>
-                    <div class="post-content">${this.highlight(this.searchTerm, entry.text)}</div>
-                `;
+            filterEntries() {
+                return this.entries.filter(entry => {
+                    const dateOptions = { month: 'short', day: 'numeric', year: 'numeric' };
+                    const searchDate = new Date(entry.date).toLocaleDateString('en-US', dateOptions);
+                    const isoDate = new Date(entry.date).toISOString().split('T')[0];
+                    
+                    return [
+                        entry.text.toLowerCase(),
+                        entry.mood.toLowerCase(),
+                        searchDate.toLowerCase(),
+                        isoDate.toLowerCase()
+                    ].some(text => text.includes(this.searchQuery));
+                });
             }
 
-            highlight(searchTerm, text) {
-                if (!searchTerm) return text;
-                const regex = new RegExp(`(${this.escapeRegex(searchTerm)})`, 'gi');
+            highlightMatches(text) {
+                if (!this.searchQuery) return text;
+                const regex = new RegExp(`(${this.escapeRegex(this.searchQuery)})`, 'gi');
                 return text.replace(regex, '<span class="highlight">$1</span>');
             }
 
@@ -385,13 +390,14 @@
             resetForm() {
                 document.querySelector('textarea').value = '';
                 document.querySelectorAll('.mood-btn').forEach(btn => 
-                    btn.classList.remove('active'));
+                    btn.classList.remove('active')
+                );
                 document.querySelector('textarea').focus();
             }
 
             showError(message) {
-                const el = document.createElement('div');
-                el.style.cssText = `
+                const errorEl = document.createElement('div');
+                errorEl.style.cssText = `
                     position: fixed;
                     top: 20px;
                     left: 50%;
@@ -403,16 +409,16 @@
                     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
                     z-index: 1000;
                 `;
-                el.textContent = message;
-                document.body.appendChild(el);
-                setTimeout(() => el.remove(), 3000);
+                errorEl.textContent = message;
+                document.body.appendChild(errorEl);
+                
+                setTimeout(() => errorEl.remove(), 3000);
             }
         }
 
-        // Initialize journal
         try {
-            new NatureJournal();
-        } catch {
+            const journal = new NatureJournal();
+        } catch (error) {
             document.body.innerHTML = `
                 <div style="
                     padding: 2rem;
