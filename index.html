@@ -320,7 +320,10 @@
                 this.saveEntries();
                 this.renderPosts();
                 this.resetForm();
-                document.getElementById('searchInput').value = '';
+                
+                const searchInput = document.getElementById('searchInput');
+                searchInput.value = '';
+                searchInput.dispatchEvent(new Event('input'));
             }
 
             setupSearch() {
