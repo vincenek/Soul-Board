@@ -238,7 +238,7 @@
                 <button class="mood-btn" data-mood="🎉 Celebratory">🎉 Celebratory</button>
             </div>
 
-            <button class="post-btn" aria-label="Create new post">Plant This Thought</button>
+            <button class="post-btn" type="button" aria-label="Create new post">Plant This Thought</button>
 
             <div class="search-container">
                 <input 
@@ -286,7 +286,6 @@
 
             bindEvents() {
                 document.querySelector('.post-btn').addEventListener('click', (e) => {
-                    e.preventDefault();
                     this.createPost();
                 });
                 
@@ -321,24 +320,23 @@
                 this.renderPosts();
                 this.resetForm();
                 
+                // Force refresh search filter
                 const searchInput = document.getElementById('searchInput');
                 searchInput.value = '';
-                searchInput.dispatchEvent(new Event('input'));
+                this.applySearchFilter('');
             }
 
             setupSearch() {
                 const searchInput = document.getElementById('searchInput');
-                let searchTimeout;
-                
                 searchInput.addEventListener('input', (e) => {
-                    clearTimeout(searchTimeout);
-                    searchTimeout = setTimeout(() => {
-                        const query = e.target.value.toLowerCase();
-                        document.querySelectorAll('.post-card').forEach(post => {
-                            const text = post.innerText.toLowerCase();
-                            post.style.display = text.includes(query) ? 'block' : 'none';
-                        });
-                    }, 300);
+                    this.applySearchFilter(e.target.value.toLowerCase());
+                });
+            }
+
+            applySearchFilter(query) {
+                document.querySelectorAll('.post-card').forEach(post => {
+                    const text = post.innerText.toLowerCase();
+                    post.style.display = text.includes(query) ? 'block' : 'none';
                 });
             }
 
@@ -368,6 +366,10 @@
                     `;
                     feed.appendChild(post);
                 });
+
+                // Re-apply search filter after rendering
+                const searchQuery = document.getElementById('searchInput').value.toLowerCase();
+                this.applySearchFilter(searchQuery);
             }
 
             resetForm() {
