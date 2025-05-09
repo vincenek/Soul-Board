@@ -266,7 +266,7 @@
 
             init() {
                 this.bindEvents();
-                this.renderPosts();
+                this.renderPosts(true);
                 this.setupSearch();
             }
 
@@ -285,10 +285,7 @@
             }
 
             bindEvents() {
-                document.querySelector('.post-btn').addEventListener('click', (e) => {
-                    this.createPost();
-                });
-                
+                document.querySelector('.post-btn').addEventListener('click', () => this.createPost());
                 document.querySelectorAll('.mood-btn').forEach(btn => 
                     btn.addEventListener('click', () => this.toggleMood(btn)));
             }
@@ -317,13 +314,12 @@
 
                 this.entries = [newEntry, ...this.entries];
                 this.saveEntries();
-                this.renderPosts();
-                this.resetForm();
                 
-                // Force refresh search filter
+                // Clear search and force refresh
                 const searchInput = document.getElementById('searchInput');
                 searchInput.value = '';
-                this.applySearchFilter('');
+                this.renderPosts(true);
+                this.resetForm();
             }
 
             setupSearch() {
@@ -340,36 +336,38 @@
                 });
             }
 
-            renderPosts() {
+            renderPosts(force = false) {
                 const feed = document.getElementById('postsFeed');
                 const emptyState = document.getElementById('emptyState');
                 
-                feed.innerHTML = '';
-                emptyState.style.display = this.entries.length ? 'none' : 'block';
+                // Only re-render if forced or entries changed
+                if (force || feed.children.length !== this.entries.length + 1) {
+                    feed.innerHTML = '';
+                    emptyState.style.display = this.entries.length ? 'none' : 'block';
 
-                this.entries.forEach(entry => {
-                    const post = document.createElement('div');
-                    post.className = 'post-card';
-                    
-                    const formattedDate = new Date(entry.date).toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric'
+                    this.entries.forEach(entry => {
+                        const post = document.createElement('div');
+                        post.className = 'post-card';
+                        
+                        const formattedDate = new Date(entry.date).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric'
+                        });
+
+                        post.innerHTML = `
+                            <div class="post-meta">
+                                <div class="post-date">${formattedDate}</div>
+                                <div class="post-mood">${entry.mood}</div>
+                            </div>
+                            <div class="post-content">${entry.text}</div>
+                        `;
+                        feed.appendChild(post);
                     });
+                }
 
-                    post.innerHTML = `
-                        <div class="post-meta">
-                            <div class="post-date">${formattedDate}</div>
-                            <div class="post-mood">${entry.mood}</div>
-                        </div>
-                        <div class="post-content">${entry.text}</div>
-                    `;
-                    feed.appendChild(post);
-                });
-
-                // Re-apply search filter after rendering
-                const searchQuery = document.getElementById('searchInput').value.toLowerCase();
-                this.applySearchFilter(searchQuery);
+                // Always apply current filter
+                this.applySearchFilter(document.getElementById('searchInput').value.toLowerCase());
             }
 
             resetForm() {
@@ -396,14 +394,12 @@
                 errorEl.textContent = message;
                 document.body.appendChild(errorEl);
                 
-                setTimeout(() => {
-                    errorEl.remove();
-                }, 3000);
+                setTimeout(() => errorEl.remove(), 3000);
             }
         }
 
         try {
-            const journal = new NatureJournal();
+            new NatureJournal();
         } catch (error) {
             console.error('Bootstrap Error:', error);
             document.body.innerHTML = `
