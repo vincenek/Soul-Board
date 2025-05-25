@@ -100,6 +100,11 @@
             gap: 0.4rem;
         }
 
+        .mood-btn:hover {
+            background: rgba(42, 157, 143, 0.1);
+            border-color: var(--primary);
+        }
+
         .mood-btn.active {
             background: var(--primary);
             color: white;
@@ -121,6 +126,10 @@
 
         .post-btn:hover {
             transform: translateY(-1px);
+        }
+
+        .post-btn:active {
+            transform: translateY(0);
         }
 
         .search-container {
@@ -225,20 +234,20 @@
 
     <main class="journal-container">
         <section class="editor">
-            <textarea aria-label="Journal entry content" placeholder="What's growing in your mind today?"></textarea>
+            <textarea id="journalText" placeholder="What's growing in your mind today?"></textarea>
             
             <div class="mood-grid">
-                <button class="mood-btn" data-mood="🌻 Happy">🌻 Happy</button>
-                <button class="mood-btn" data-mood="🍃 Calm">🍃 Calm</button>
-                <button class="mood-btn" data-mood="🌧️ Reflective">🌧️ Reflective</button>
-                <button class="mood-btn" data-mood="💡 Inspired">💡 Inspired</button>
-                <button class="mood-btn" data-mood="🌊 Flow">🌊 Flow</button>
-                <button class="mood-btn" data-mood="🔥 Passionate">🔥 Passionate</button>
-                <button class="mood-btn" data-mood="🌙 Restful">🌙 Restful</button>
-                <button class="mood-btn" data-mood="🎉 Celebratory">🎉 Celebratory</button>
+                <button class="mood-btn" onclick="selectMood(this, '🌻 Happy')">🌻 Happy</button>
+                <button class="mood-btn" onclick="selectMood(this, '🍃 Calm')">🍃 Calm</button>
+                <button class="mood-btn" onclick="selectMood(this, '🌧️ Reflective')">🌧️ Reflective</button>
+                <button class="mood-btn" onclick="selectMood(this, '💡 Inspired')">💡 Inspired</button>
+                <button class="mood-btn" onclick="selectMood(this, '🌊 Flow')">🌊 Flow</button>
+                <button class="mood-btn" onclick="selectMood(this, '🔥 Passionate')">🔥 Passionate</button>
+                <button class="mood-btn" onclick="selectMood(this, '🌙 Restful')">🌙 Restful</button>
+                <button class="mood-btn" onclick="selectMood(this, '🎉 Celebratory')">🎉 Celebratory</button>
             </div>
 
-            <button class="post-btn" type="button" aria-label="Create new post">Plant This Thought</button>
+            <button class="post-btn" onclick="createPost()">Plant This Thought</button>
 
             <div class="search-container">
                 <input 
@@ -246,244 +255,149 @@
                     class="search-bar" 
                     id="searchInput"
                     placeholder="Search your thoughts..."
-                    aria-label="Search entries">
+                    oninput="searchPosts()">
             </div>
         </section>
 
         <section class="posts-feed" id="postsFeed">
-            <div class="empty-state" id="emptyState">
+            <div class="empty-state">
                 Your mental garden is empty... Plant your first thought seed
             </div>
         </section>
     </main>
 
     <script>
-        class NatureJournal {
-            constructor() {
-                this.STORAGE_KEY = 'natureJournalV2';
-                this.entries = this.loadEntries();
-                this.filteredEntries = [...this.entries];
-                this.init();
-            }
+        // Global variables
+        let allPosts = [];
+        let selectedMood = '🌱 Neutral';
 
-            init() {
-                this.bindEvents();
-                this.renderPosts();
-                this.setupSearch();
-            }
-
-            loadEntries() {
-                try {
-                    const entries = JSON.parse(localStorage.getItem(this.STORAGE_KEY)) || [];
-                    return entries.sort((a, b) => b.id - a.id);
-                } catch (error) {
-                    console.error('Load error:', error);
-                    return [];
-                }
-            }
-
-            saveEntries() {
-                try {
-                    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.entries));
-                } catch (error) {
-                    console.error('Save error:', error);
-                    this.showError('Failed to save entry. Please try again.');
-                }
-            }
-
-            bindEvents() {
-                document.querySelector('.post-btn').addEventListener('click', () => this.createPost());
-                document.querySelectorAll('.mood-btn').forEach(btn => 
-                    btn.addEventListener('click', () => this.toggleMood(btn)));
-                
-                // Add Enter key support for textarea (Ctrl+Enter to submit)
-                document.querySelector('textarea').addEventListener('keydown', (e) => {
-                    if (e.ctrlKey && e.key === 'Enter') {
-                        this.createPost();
-                    }
-                });
-            }
-
-            toggleMood(btn) {
-                document.querySelectorAll('.mood-btn').forEach(b => 
-                    b.classList.remove('active'));
-                btn.classList.add('active');
-            }
-
-            createPost() {
-                const text = document.querySelector('textarea').value.trim();
-                const mood = document.querySelector('.mood-btn.active')?.dataset.mood || '🌱 Neutral';
-                
-                if (!text) {
-                    this.showError('Please write something before posting!');
-                    document.querySelector('textarea').focus();
-                    return;
-                }
-
-                const newEntry = {
-                    id: Date.now(),
-                    text,
-                    mood,
-                    date: new Date().toISOString()
-                };
-
-                this.entries = [newEntry, ...this.entries];
-                this.saveEntries();
-                
-                // Clear search and update filtered entries
-                const searchInput = document.getElementById('searchInput');
-                searchInput.value = '';
-                this.filteredEntries = [...this.entries];
-                this.renderPosts();
-                this.resetForm();
-            }
-
-            setupSearch() {
-                const searchInput = document.getElementById('searchInput');
-                let searchTimeout;
-                
-                searchInput.addEventListener('input', (e) => {
-                    // Debounce search for better performance
-                    clearTimeout(searchTimeout);
-                    searchTimeout = setTimeout(() => {
-                        this.performSearch(e.target.value);
-                    }, 300);
-                });
-            }
-
-            performSearch(query) {
-                const searchTerm = query.toLowerCase().trim();
-                
-                if (!searchTerm) {
-                    this.filteredEntries = [...this.entries];
-                } else {
-                    this.filteredEntries = this.entries.filter(entry => {
-                        const textMatch = entry.text.toLowerCase().includes(searchTerm);
-                        const moodMatch = entry.mood.toLowerCase().includes(searchTerm);
-                        const dateMatch = new Date(entry.date).toLocaleDateString().toLowerCase().includes(searchTerm);
-                        return textMatch || moodMatch || dateMatch;
-                    });
-                }
-                
-                this.renderPosts();
-            }
-
-            renderPosts() {
-                const feed = document.getElementById('postsFeed');
-                const emptyState = document.getElementById('emptyState');
-                
-                // Clear existing posts
-                feed.innerHTML = '';
-                
-                if (this.filteredEntries.length === 0) {
-                    if (this.entries.length === 0) {
-                        emptyState.textContent = 'Your mental garden is empty... Plant your first thought seed';
-                    } else {
-                        emptyState.textContent = 'No entries match your search. Try different keywords.';
-                    }
-                    emptyState.style.display = 'block';
-                    feed.appendChild(emptyState);
-                    return;
-                }
-
-                emptyState.style.display = 'none';
-
-                this.filteredEntries.forEach(entry => {
-                    const post = document.createElement('div');
-                    post.className = 'post-card';
-                    
-                    const formattedDate = new Date(entry.date).toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                    });
-
-                    post.innerHTML = `
-                        <div class="post-meta">
-                            <div class="post-date">${formattedDate}</div>
-                            <div class="post-mood">${entry.mood}</div>
-                        </div>
-                        <div class="post-content">${this.escapeHtml(entry.text)}</div>
-                    `;
-                    feed.appendChild(post);
-                });
-            }
-
-            escapeHtml(unsafe) {
-                return unsafe
-                    .replace(/&/g, "&amp;")
-                    .replace(/</g, "&lt;")
-                    .replace(/>/g, "&gt;")
-                    .replace(/"/g, "&quot;")
-                    .replace(/'/g, "&#039;");
-            }
-
-            resetForm() {
-                document.querySelector('textarea').value = '';
-                document.querySelectorAll('.mood-btn').forEach(btn => 
-                    btn.classList.remove('active'));
-                document.querySelector('textarea').focus();
-            }
-
-            showError(message) {
-                const errorEl = document.createElement('div');
-                errorEl.style.cssText = `
-                    position: fixed;
-                    top: 20px;
-                    left: 50%;
-                    transform: translateX(-50%);
-                    background: var(--error);
-                    color: white;
-                    padding: 1rem 2rem;
-                    border-radius: 0.5rem;
-                    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-                    z-index: 1000;
-                    font-weight: 500;
-                    max-width: 90%;
-                    text-align: center;
-                `;
-                errorEl.textContent = message;
-                document.body.appendChild(errorEl);
-                
-                setTimeout(() => {
-                    if (errorEl.parentNode) {
-                        errorEl.remove();
-                    }
-                }, 3000);
+        // Load posts from localStorage when page loads
+        function loadPosts() {
+            try {
+                const saved = localStorage.getItem('journalPosts');
+                allPosts = saved ? JSON.parse(saved) : [];
+                displayPosts(allPosts);
+            } catch (e) {
+                console.error('Error loading posts:', e);
+                allPosts = [];
             }
         }
 
-        // Initialize the app when DOM is loaded
-        document.addEventListener('DOMContentLoaded', () => {
+        // Save posts to localStorage
+        function savePosts() {
             try {
-                new NatureJournal();
-            } catch (error) {
-                console.error('Bootstrap Error:', error);
-                document.body.innerHTML = `
-                    <div style="
-                        padding: 2rem;
-                        text-align: center;
-                        color: var(--error);
-                        max-width: 600px;
-                        margin: 2rem auto;
-                        background: white;
-                        border-radius: 1rem;
-                        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-                    ">
-                        <h1>🚨 Critical Error</h1>
-                        <p>The journal app failed to initialize. Please clear your browser data and refresh the page.</p>
-                        <button onclick="localStorage.clear(); location.reload();" style="
-                            background: var(--primary);
-                            color: white;
-                            border: none;
-                            padding: 0.8rem 1.5rem;
-                            border-radius: 0.5rem;
-                            margin-top: 1rem;
-                            cursor: pointer;
-                        ">Clear Data & Reload</button>
+                localStorage.setItem('journalPosts', JSON.stringify(allPosts));
+            } catch (e) {
+                console.error('Error saving posts:', e);
+                alert('Error saving your post. Please try again.');
+            }
+        }
+
+        // Select mood
+        function selectMood(button, mood) {
+            // Remove active class from all buttons
+            document.querySelectorAll('.mood-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Add active class to clicked button
+            button.classList.add('active');
+            selectedMood = mood;
+        }
+
+        // Create new post
+        function createPost() {
+            const text = document.getElementById('journalText').value.trim();
+            
+            if (!text) {
+                alert('Please write something before posting!');
+                return;
+            }
+
+            const newPost = {
+                id: Date.now(),
+                text: text,
+                mood: selectedMood,
+                date: new Date().toISOString()
+            };
+
+            // Add to beginning of array
+            allPosts.unshift(newPost);
+            savePosts();
+            
+            // Clear form
+            document.getElementById('journalText').value = '';
+            document.querySelectorAll('.mood-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            selectedMood = '🌱 Neutral';
+            
+            // Clear search and show all posts
+            document.getElementById('searchInput').value = '';
+            displayPosts(allPosts);
+        }
+
+        // Search posts
+        function searchPosts() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            
+            if (!searchTerm) {
+                displayPosts(allPosts);
+                return;
+            }
+
+            const filtered = allPosts.filter(post => {
+                return post.text.toLowerCase().includes(searchTerm) ||
+                       post.mood.toLowerCase().includes(searchTerm);
+            });
+
+            displayPosts(filtered);
+        }
+
+        // Display posts
+        function displayPosts(posts) {
+            const feed = document.getElementById('postsFeed');
+            
+            if (posts.length === 0) {
+                feed.innerHTML = `
+                    <div class="empty-state">
+                        ${allPosts.length === 0 ? 
+                          'Your mental garden is empty... Plant your first thought seed' : 
+                          'No posts match your search'}
                     </div>
                 `;
+                return;
             }
-        });
+
+            let html = '';
+            posts.forEach(post => {
+                const date = new Date(post.date).toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+
+                html += `
+                    <div class="post-card">
+                        <div class="post-meta">
+                            <div class="post-date">${date}</div>
+                            <div class="post-mood">${post.mood}</div>
+                        </div>
+                        <div class="post-content">${post.text.replace(/\n/g, '<br>')}</div>
+                    </div>
+                `;
+            });
+
+            feed.innerHTML = html;
+        }
+
+        // Initialize app when page loads
+        window.onload = function() {
+            loadPosts();
+            document.getElementById('journalText').focus();
+        };
+    </script>
+</body>
+</html>
