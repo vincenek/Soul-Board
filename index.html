@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SoulBoard Pro | Mental Wellness Journal</title>
+    <title>Mindful Nature Journal | Secure</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌿</text></svg>">
     <style>
         :root {
@@ -14,6 +14,7 @@
             --border: #C4D8D2;
             --accent: #83C5BE;
             --error: #E76F51;
+            --modal-bg: rgba(244, 249, 247, 0.95);
         }
 
         * {
@@ -31,12 +32,14 @@
             margin: 0 auto;
             padding: 2rem 1rem;
             min-height: 100vh;
+            transition: all 0.4s ease;
         }
 
         .header {
             text-align: center;
             margin-bottom: 2rem;
             animation: fadeIn 0.8s ease-out;
+            position: relative;
         }
 
         .logo {
@@ -59,6 +62,7 @@
             padding: 2rem;
             margin-bottom: 2rem;
             backdrop-filter: blur(4px);
+            transition: all 0.3s ease;
         }
 
         .editor textarea {
@@ -206,9 +210,175 @@
             font-style: italic;
         }
 
+        /* Auth Modal Styles */
+        .auth-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+        }
+
+        .auth-container {
+            background: var(--modal-bg);
+            border-radius: 1.5rem;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 420px;
+            padding: 2.5rem;
+            position: relative;
+            animation: scaleIn 0.4s ease;
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 1.8rem;
+        }
+
+        .auth-title {
+            font-size: 1.8rem;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .auth-subtitle {
+            color: #5C8374;
+            font-size: 1rem;
+        }
+
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-label {
+            font-size: 0.9rem;
+            color: var(--text);
+            font-weight: 500;
+        }
+
+        .form-input {
+            padding: 0.9rem 1.2rem;
+            border: 2px solid var(--border);
+            border-radius: 0.6rem;
+            font-size: 1rem;
+            background: rgba(255, 255, 255, 0.9);
+            transition: all 0.2s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(42, 157, 143, 0.1);
+        }
+
+        .auth-btn {
+            background: linear-gradient(135deg, var(--primary) 0%, #34A798 100%);
+            color: white;
+            border: none;
+            border-radius: 0.6rem;
+            padding: 1rem;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            margin-top: 0.5rem;
+        }
+
+        .auth-btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .auth-btn.secondary {
+            background: transparent;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+
+        .auth-footer {
+            text-align: center;
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
+            color: #5C8374;
+        }
+
+        .auth-footer a {
+            color: var(--primary);
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .auth-footer a:hover {
+            text-decoration: underline;
+        }
+
+        .error-message {
+            color: var(--error);
+            font-size: 0.85rem;
+            margin-top: 0.3rem;
+            min-height: 1.2rem;
+        }
+
+        .user-info {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        .logout-btn {
+            background: rgba(231, 111, 81, 0.1);
+            color: var(--error);
+            border: none;
+            border-radius: 0.4rem;
+            padding: 0.4rem 0.8rem;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .logout-btn:hover {
+            background: rgba(231, 111, 81, 0.2);
+        }
+
+        /* Animations */
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
         }
 
         @media (max-width: 480px) {
@@ -223,59 +393,263 @@
             .mood-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
+            
+            .auth-container {
+                padding: 1.8rem;
+                margin: 1rem;
+            }
         }
     </style>
 </head>
 <body>
-    <header class="header">
-        <div class="logo">🌿</div>
-        <h1 class="tagline">Mindful Nature Journal</h1>
-    </header>
-
-    <main class="journal-container">
-        <section class="editor">
-            <textarea id="journalText" placeholder="What's growing in your mind today?"></textarea>
+    <!-- Auth Modal -->
+    <div id="authModal" class="auth-modal">
+        <div class="auth-container">
+            <div class="auth-header">
+                <div class="logo">🌿</div>
+                <h2 class="auth-title">Mindful Nature Journal</h2>
+                <p class="auth-subtitle">Secure & Private Mental Wellness</p>
+            </div>
             
-            <div class="mood-grid">
-                <button class="mood-btn" onclick="selectMood(this, '🌻 Happy')">🌻 Happy</button>
-                <button class="mood-btn" onclick="selectMood(this, '🍃 Calm')">🍃 Calm</button>
-                <button class="mood-btn" onclick="selectMood(this, '🌧️ Reflective')">🌧️ Reflective</button>
-                <button class="mood-btn" onclick="selectMood(this, '💡 Inspired')">💡 Inspired</button>
-                <button class="mood-btn" onclick="selectMood(this, '🌊 Flow')">🌊 Flow</button>
-                <button class="mood-btn" onclick="selectMood(this, '🔥 Passionate')">🔥 Passionate</button>
-                <button class="mood-btn" onclick="selectMood(this, '🌙 Restful')">🌙 Restful</button>
-                <button class="mood-btn" onclick="selectMood(this, '🎉 Celebratory')">🎉 Celebratory</button>
+            <form id="loginForm" class="auth-form">
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" id="loginEmail" class="form-input" placeholder="your@email.com" required>
+                    <div id="loginEmailError" class="error-message"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" id="loginPassword" class="form-input" placeholder="••••••••" required>
+                    <div id="loginPasswordError" class="error-message"></div>
+                </div>
+                
+                <button type="submit" class="auth-btn">Sign In</button>
+            </form>
+            
+            <div class="auth-footer">
+                <p>Don't have an account? <a id="showSignup">Sign Up</a></p>
             </div>
-
-            <button class="post-btn" onclick="createPost()">Plant This Thought</button>
-
-            <div class="search-container">
-                <input 
-                    type="text" 
-                    class="search-bar" 
-                    id="searchInput"
-                    placeholder="Search your thoughts..."
-                    oninput="searchPosts()">
+        </div>
+        
+        <div id="signupContainer" class="auth-container" style="display: none;">
+            <div class="auth-header">
+                <div class="logo">🌿</div>
+                <h2 class="auth-title">Create Account</h2>
+                <p class="auth-subtitle">Start your mindful journey</p>
             </div>
-        </section>
+            
+            <form id="signupForm" class="auth-form">
+                <div class="form-group">
+                    <label class="form-label">Name</label>
+                    <input type="text" id="signupName" class="form-input" placeholder="Your name" required>
+                    <div id="signupNameError" class="error-message"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" id="signupEmail" class="form-input" placeholder="your@email.com" required>
+                    <div id="signupEmailError" class="error-message"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" id="signupPassword" class="form-input" placeholder="••••••••" required>
+                    <div id="signupPasswordError" class="error-message"></div>
+                </div>
+                
+                <button type="submit" class="auth-btn">Create Account</button>
+                <button type="button" class="auth-btn secondary" id="backToLogin">Back to Login</button>
+            </form>
+        </div>
+    </div>
 
-        <section class="posts-feed" id="postsFeed">
-            <div class="empty-state">
-                Your mental garden is empty... Plant your first thought seed
+    <!-- Main Journal UI -->
+    <div id="mainContent" style="display: none;">
+        <header class="header">
+            <div class="user-info">
+                <div class="user-avatar" id="userAvatar">U</div>
+                <button class="logout-btn" onclick="logout()">Logout</button>
             </div>
-        </section>
-    </main>
+            <div class="logo">🌿</div>
+            <h1 class="tagline">Mindful Nature Journal</h1>
+        </header>
+
+        <main class="journal-container">
+            <section class="editor">
+                <textarea id="journalText" placeholder="What's growing in your mind today?"></textarea>
+                
+                <div class="mood-grid">
+                    <button class="mood-btn" onclick="selectMood(this, '🌻 Happy')">🌻 Happy</button>
+                    <button class="mood-btn" onclick="selectMood(this, '🍃 Calm')">🍃 Calm</button>
+                    <button class="mood-btn" onclick="selectMood(this, '🌧️ Reflective')">🌧️ Reflective</button>
+                    <button class="mood-btn" onclick="selectMood(this, '💡 Inspired')">💡 Inspired</button>
+                    <button class="mood-btn" onclick="selectMood(this, '🌊 Flow')">🌊 Flow</button>
+                    <button class="mood-btn" onclick="selectMood(this, '🔥 Passionate')">🔥 Passionate</button>
+                    <button class="mood-btn" onclick="selectMood(this, '🌙 Restful')">🌙 Restful</button>
+                    <button class="mood-btn" onclick="selectMood(this, '🎉 Celebratory')">🎉 Celebratory</button>
+                </div>
+
+                <button class="post-btn" onclick="createPost()">Plant This Thought</button>
+
+                <div class="search-container">
+                    <input 
+                        type="text" 
+                        class="search-bar" 
+                        id="searchInput"
+                        placeholder="Search your thoughts..."
+                        oninput="searchPosts()">
+                </div>
+            </section>
+
+            <section class="posts-feed" id="postsFeed">
+                <div class="empty-state">
+                    Your mental garden is empty... Plant your first thought seed
+                </div>
+            </section>
+        </main>
+    </div>
 
     <script>
         // Global variables
         let allPosts = [];
         let selectedMood = '🌱 Neutral';
+        let currentUser = null;
 
-        // Load posts from localStorage when page loads
+        // DOM Elements
+        const authModal = document.getElementById('authModal');
+        const mainContent = document.getElementById('mainContent');
+        const loginForm = document.getElementById('loginForm');
+        const signupForm = document.getElementById('signupForm');
+        const showSignup = document.getElementById('showSignup');
+        const backToLogin = document.getElementById('backToLogin');
+        const signupContainer = document.getElementById('signupContainer');
+        const userAvatar = document.getElementById('userAvatar');
+
+        // Toggle between login and signup forms
+        showSignup.addEventListener('click', () => {
+            document.getElementById('loginForm').closest('.auth-container').style.display = 'none';
+            signupContainer.style.display = 'block';
+        });
+
+        backToLogin.addEventListener('click', () => {
+            signupContainer.style.display = 'none';
+            document.getElementById('loginForm').closest('.auth-container').style.display = 'block';
+        });
+
+        // Login form submission
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            // Clear errors
+            document.getElementById('loginEmailError').textContent = '';
+            document.getElementById('loginPasswordError').textContent = '';
+            
+            // Validate email format
+            if (!validateEmail(email)) {
+                document.getElementById('loginEmailError').textContent = 'Please enter a valid email';
+                return;
+            }
+            
+            // Check if user exists
+            const users = JSON.parse(localStorage.getItem('journalUsers') || '{}');
+            if (!users[email]) {
+                document.getElementById('loginEmailError').textContent = 'User not found. Please sign up.';
+                return;
+            }
+            
+            // Verify password
+            if (users[email].password !== hashPassword(password)) {
+                document.getElementById('loginPasswordError').textContent = 'Incorrect password';
+                return;
+            }
+            
+            // Login successful
+            currentUser = users[email];
+            loadUserData();
+        });
+
+        // Signup form submission
+        signupForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('signupName').value;
+            const email = document.getElementById('signupEmail').value;
+            const password = document.getElementById('signupPassword').value;
+            
+            // Clear errors
+            document.getElementById('signupNameError').textContent = '';
+            document.getElementById('signupEmailError').textContent = '';
+            document.getElementById('signupPasswordError').textContent = '';
+            
+            // Validate email
+            if (!validateEmail(email)) {
+                document.getElementById('signupEmailError').textContent = 'Please enter a valid email';
+                return;
+            }
+            
+            // Check password length
+            if (password.length < 6) {
+                document.getElementById('signupPasswordError').textContent = 'Password must be at least 6 characters';
+                return;
+            }
+            
+            // Check if user already exists
+            const users = JSON.parse(localStorage.getItem('journalUsers') || '{}');
+            if (users[email]) {
+                document.getElementById('signupEmailError').textContent = 'Email already in use';
+                return;
+            }
+            
+            // Create new user
+            const newUser = {
+                name: name,
+                email: email,
+                password: hashPassword(password),
+                createdAt: new Date().toISOString()
+            };
+            
+            users[email] = newUser;
+            localStorage.setItem('journalUsers', JSON.stringify(users));
+            
+            // Set as current user
+            currentUser = newUser;
+            loadUserData();
+        });
+
+        // Simple password hashing
+        function hashPassword(password) {
+            // Simple hash for demonstration (use bcrypt in production)
+            return btoa(encodeURIComponent(password));
+        }
+
+        // Email validation
+        function validateEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+        }
+
+        // Load user data and posts
+        function loadUserData() {
+            if (currentUser) {
+                // Update UI with user info
+                userAvatar.textContent = currentUser.name.charAt(0).toUpperCase();
+                
+                // Hide auth modal and show main content
+                authModal.style.display = 'none';
+                mainContent.style.display = 'block';
+                
+                // Load posts from localStorage
+                loadPosts();
+            }
+        }
+
+        // Load posts from localStorage
         function loadPosts() {
             try {
-                const saved = localStorage.getItem('journalPosts');
-                allPosts = saved ? JSON.parse(saved) : [];
+                const userPosts = JSON.parse(localStorage.getItem(`journalPosts_${currentUser.email}`) || '[]');
+                allPosts = userPosts;
                 displayPosts(allPosts);
             } catch (e) {
                 console.error('Error loading posts:', e);
@@ -286,10 +660,24 @@
         // Save posts to localStorage
         function savePosts() {
             try {
-                localStorage.setItem('journalPosts', JSON.stringify(allPosts));
+                localStorage.setItem(`journalPosts_${currentUser.email}`, JSON.stringify(allPosts));
             } catch (e) {
                 console.error('Error saving posts:', e);
                 alert('Error saving your post. Please try again.');
+            }
+        }
+
+        // Check if user is logged in
+        function checkAuth() {
+            const users = JSON.parse(localStorage.getItem('journalUsers') || '{}');
+            const lastUserEmail = localStorage.getItem('lastUserEmail');
+            
+            if (lastUserEmail && users[lastUserEmail]) {
+                currentUser = users[lastUserEmail];
+                loadUserData();
+            } else {
+                authModal.style.display = 'flex';
+                mainContent.style.display = 'none';
             }
         }
 
@@ -307,6 +695,11 @@
 
         // Create new post
         function createPost() {
+            if (!currentUser) {
+                alert('Please sign in to create a post');
+                return;
+            }
+            
             const text = document.getElementById('journalText').value.trim();
             
             if (!text) {
@@ -379,13 +772,23 @@
                     minute: '2-digit'
                 });
 
+                // Highlight search term if applicable
+                let displayText = post.text;
+                const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+                if (searchTerm) {
+                    const regex = new RegExp(searchTerm, 'gi');
+                    displayText = displayText.replace(regex, match => 
+                        `<span class="highlight">${match}</span>`
+                    );
+                }
+
                 html += `
                     <div class="post-card">
                         <div class="post-meta">
                             <div class="post-date">${date}</div>
                             <div class="post-mood">${post.mood}</div>
                         </div>
-                        <div class="post-content">${post.text.replace(/\n/g, '<br>')}</div>
+                        <div class="post-content">${displayText.replace(/\n/g, '<br>')}</div>
                     </div>
                 `;
             });
@@ -393,10 +796,28 @@
             feed.innerHTML = html;
         }
 
+        // Logout function
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem('lastUserEmail');
+            allPosts = [];
+            
+            authModal.style.display = 'flex';
+            mainContent.style.display = 'none';
+            
+            // Show login form by default
+            document.getElementById('loginForm').closest('.auth-container').style.display = 'block';
+            signupContainer.style.display = 'none';
+            
+            // Clear form fields
+            document.getElementById('loginEmail').value = '';
+            document.getElementById('loginPassword').value = '';
+        }
+
         // Initialize app when page loads
         window.onload = function() {
-            loadPosts();
-            document.getElementById('journalText').focus();
+            checkAuth();
+            document.getElementById('loginEmail').focus();
         };
     </script>
 </body>
