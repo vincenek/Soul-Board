@@ -5,12 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SoulBoard Pro | Mental Wellness Journal</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌿</text></svg>">
-    
-    <!-- Firebase SDK -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-app-compat.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-auth-compat.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-firestore-compat.min.js"></script>
-    
     <style>
         :root {
             --primary: #2A9D8F;
@@ -56,92 +50,6 @@
             font-size: 1.1rem;
             font-weight: 500;
             letter-spacing: -0.02em;
-        }
-
-        .auth-container {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 1rem;
-            box-shadow: 0 8px 32px rgba(42, 157, 143, 0.08);
-            padding: 2rem;
-            margin-bottom: 2rem;
-            backdrop-filter: blur(4px);
-        }
-
-        .auth-form {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .auth-input {
-            padding: 0.8rem 1.2rem;
-            border: 2px solid var(--border);
-            border-radius: 0.6rem;
-            font-size: 1rem;
-            background: rgba(244, 249, 247, 0.8);
-            transition: all 0.2s ease;
-        }
-
-        .auth-input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(42, 157, 143, 0.1);
-        }
-
-        .auth-btn {
-            background: linear-gradient(135deg, var(--primary) 0%, #34A798 100%);
-            color: white;
-            border: none;
-            border-radius: 0.6rem;
-            padding: 1rem 2rem;
-            font-size: 1rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: transform 0.2s ease;
-        }
-
-        .auth-btn:hover {
-            transform: translateY(-1px);
-        }
-
-        .auth-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .auth-toggle {
-            text-align: center;
-            margin-top: 1rem;
-        }
-
-        .auth-toggle button {
-            background: none;
-            border: none;
-            color: var(--primary);
-            text-decoration: underline;
-            cursor: pointer;
-            font-size: 0.9rem;
-        }
-
-        .user-info {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-            padding: 1rem;
-            background: rgba(42, 157, 143, 0.1);
-            border-radius: 0.6rem;
-        }
-
-        .logout-btn {
-            background: var(--error);
-            color: white;
-            border: none;
-            border-radius: 0.4rem;
-            padding: 0.5rem 1rem;
-            font-size: 0.9rem;
-            cursor: pointer;
         }
 
         .journal-container {
@@ -298,23 +206,141 @@
             font-style: italic;
         }
 
-        .loading {
-            text-align: center;
+        /* Auth Form Styles */
+        .auth-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 1rem;
+            box-shadow: 0 8px 32px rgba(42, 157, 143, 0.08);
             padding: 2rem;
-            color: #83A69B;
+            margin: 0 auto 2rem;
+            max-width: 480px;
         }
 
-        .hidden {
-            display: none !important;
+        .auth-toggle {
+            display: flex;
+            margin-bottom: 1.5rem;
+            border-radius: 0.8rem;
+            overflow: hidden;
+            border: 2px solid var(--border);
         }
 
-        .error-message {
+        .auth-tab {
+            flex: 1;
+            padding: 0.8rem;
+            text-align: center;
+            background: rgba(244, 249, 247, 0.8);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .auth-tab.active {
+            background: var(--primary);
+            color: white;
+            font-weight: 500;
+        }
+
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+        }
+
+        .auth-input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .auth-input-group label {
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .auth-input {
+            padding: 0.8rem 1rem;
+            border: 2px solid var(--border);
+            border-radius: 0.6rem;
+            font-size: 1rem;
+            background: rgba(244, 249, 247, 0.8);
+            transition: all 0.2s ease;
+        }
+
+        .auth-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(42, 157, 143, 0.1);
+        }
+
+        .auth-btn {
+            background: linear-gradient(135deg, var(--primary) 0%, #34A798 100%);
+            color: white;
+            border: none;
+            border-radius: 0.6rem;
+            padding: 1rem;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .auth-btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .auth-btn:active {
+            transform: translateY(0);
+        }
+
+        .auth-error {
+            color: var(--error);
+            text-align: center;
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            min-height: 1.4rem;
+        }
+
+        .user-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            margin-bottom: 1rem;
+        }
+
+        .user-email {
+            font-weight: 500;
+            color: var(--primary);
+        }
+
+        .signout-btn {
             background: rgba(231, 111, 81, 0.1);
             color: var(--error);
-            padding: 0.8rem;
-            border-radius: 0.6rem;
-            margin-bottom: 1rem;
-            text-align: center;
+            border: 1px solid var(--error);
+            border-radius: 0.5rem;
+            padding: 0.4rem 0.8rem;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .signout-btn:hover {
+            background: rgba(231, 111, 81, 0.2);
+        }
+
+        /* Loading spinner */
+        .spinner {
+            width: 40px;
+            height: 40px;
+            margin: 2rem auto;
+            border: 4px solid rgba(42, 157, 143, 0.2);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         @keyframes fadeIn {
@@ -334,236 +360,222 @@
             .mood-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
-
-            .user-info {
-                flex-direction: column;
-                gap: 0.5rem;
-            }
         }
     </style>
 </head>
 <body>
     <header class="header">
         <div class="logo">🌿</div>
-        <h1 class="tagline">SoulBoard Pro | Mental Wellness Journal</h1>
+        <h1 class="tagline">SoulBoard Pro - Mental Wellness Journal</h1>
     </header>
 
-    <!-- Loading State -->
-    <div id="loadingState" class="loading">
-        Connecting to your journal...
-    </div>
-
-    <!-- Authentication Container -->
-    <div id="authContainer" class="auth-container hidden">
-        <div id="errorMessage" class="error-message hidden"></div>
+    <!-- Auth Container -->
+    <div class="auth-container" id="authContainer">
+        <div class="auth-toggle">
+            <div class="auth-tab active" id="loginTab">Login</div>
+            <div class="auth-tab" id="signupTab">Sign Up</div>
+        </div>
         
-        <form id="authForm" class="auth-form">
-            <h2 id="authTitle">Welcome to Your Digital Sanctuary</h2>
-            <input type="email" id="emailInput" class="auth-input" placeholder="Email" required>
-            <input type="password" id="passwordInput" class="auth-input" placeholder="Password" required>
-            <button type="submit" id="authSubmitBtn" class="auth-btn">Sign In</button>
+        <form class="auth-form" id="loginForm">
+            <div class="auth-input-group">
+                <label for="loginEmail">Email</label>
+                <input type="email" id="loginEmail" class="auth-input" placeholder="your@email.com" required>
+            </div>
+            
+            <div class="auth-input-group">
+                <label for="loginPassword">Password</label>
+                <input type="password" id="loginPassword" class="auth-input" placeholder="••••••••" required>
+            </div>
+            
+            <button type="submit" class="auth-btn">Login to Journal</button>
+            <div class="auth-error" id="loginError"></div>
         </form>
         
-        <div class="auth-toggle">
-            <p id="authToggleText">Don't have an account? 
-                <button type="button" id="authToggleBtn">Create one</button>
-            </p>
-        </div>
+        <form class="auth-form" id="signupForm" style="display: none;">
+            <div class="auth-input-group">
+                <label for="signupEmail">Email</label>
+                <input type="email" id="signupEmail" class="auth-input" placeholder="your@email.com" required>
+            </div>
+            
+            <div class="auth-input-group">
+                <label for="signupPassword">Password</label>
+                <input type="password" id="signupPassword" class="auth-input" placeholder="••••••••" required>
+            </div>
+            
+            <div class="auth-input-group">
+                <label for="signupConfirm">Confirm Password</label>
+                <input type="password" id="signupConfirm" class="auth-input" placeholder="••••••••" required>
+            </div>
+            
+            <button type="submit" class="auth-btn">Create Account</button>
+            <div class="auth-error" id="signupError"></div>
+        </form>
     </div>
 
-    <!-- Main App Container -->
-    <div id="appContainer" class="hidden">
+    <!-- Journal Container (hidden by default) -->
+    <div class="journal-container" id="journalContainer" style="display: none;">
         <div class="user-info">
-            <span>Welcome, <span id="userEmail"></span></span>
-            <button onclick="logout()" class="logout-btn">Sign Out</button>
+            <div>Logged in as: <span class="user-email" id="userEmail"></span></div>
+            <button class="signout-btn" onclick="signOut()">Sign Out</button>
         </div>
+        
+        <section class="editor">
+            <textarea id="journalText" placeholder="What's growing in your mind today?"></textarea>
+            
+            <div class="mood-grid">
+                <button class="mood-btn" onclick="selectMood(this, '🌻 Happy')">🌻 Happy</button>
+                <button class="mood-btn" onclick="selectMood(this, '🍃 Calm')">🍃 Calm</button>
+                <button class="mood-btn" onclick="selectMood(this, '🌧️ Reflective')">🌧️ Reflective</button>
+                <button class="mood-btn" onclick="selectMood(this, '💡 Inspired')">💡 Inspired</button>
+                <button class="mood-btn" onclick="selectMood(this, '🌊 Flow')">🌊 Flow</button>
+                <button class="mood-btn" onclick="selectMood(this, '🔥 Passionate')">🔥 Passionate</button>
+                <button class="mood-btn" onclick="selectMood(this, '🌙 Restful')">🌙 Restful</button>
+                <button class="mood-btn" onclick="selectMood(this, '🎉 Celebratory')">🎉 Celebratory</button>
+            </div>
 
-        <main class="journal-container">
-            <section class="editor">
-                <textarea id="journalText" placeholder="What's on your mind today?"></textarea>
-                
-                <div class="mood-grid">
-                    <button class="mood-btn" onclick="selectMood(this, '🌻 Happy')">🌻 Happy</button>
-                    <button class="mood-btn" onclick="selectMood(this, '🍃 Calm')">🍃 Calm</button>
-                    <button class="mood-btn" onclick="selectMood(this, '🌧️ Reflective')">🌧️ Reflective</button>
-                    <button class="mood-btn" onclick="selectMood(this, '💡 Inspired')">💡 Inspired</button>
-                    <button class="mood-btn" onclick="selectMood(this, '🌊 Flow')">🌊 Flow</button>
-                    <button class="mood-btn" onclick="selectMood(this, '🔥 Passionate')">🔥 Passionate</button>
-                    <button class="mood-btn" onclick="selectMood(this, '🌙 Restful')">🌙 Restful</button>
-                    <button class="mood-btn" onclick="selectMood(this, '🎉 Celebratory')">🎉 Celebratory</button>
-                </div>
+            <button class="post-btn" onclick="createPost()">Plant This Thought</button>
 
-                <button class="post-btn" onclick="createPost()">Save Reflection</button>
+            <div class="search-container">
+                <input 
+                    type="text" 
+                    class="search-bar" 
+                    id="searchInput"
+                    placeholder="Search your thoughts..."
+                    oninput="searchPosts()">
+            </div>
+        </section>
 
-                <div class="search-container">
-                    <input 
-                        type="text" 
-                        class="search-bar" 
-                        id="searchInput"
-                        placeholder="Search your reflections..."
-                        oninput="searchPosts()">
-                </div>
-            </section>
-
-            <section class="posts-feed" id="postsFeed">
-                <div class="empty-state">
-                    Your journal is empty... Write your first reflection
-                </div>
-            </section>
-        </main>
+        <section class="posts-feed" id="postsFeed">
+            <div class="empty-state">
+                Your mental garden is empty... Plant your first thought seed
+            </div>
+        </section>
     </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
     <script>
-        // =====================
-        // FIREBASE CONFIGURATION
-        // =====================
+        // Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyBbfiIeI-LkRNF60p4BYw2l4BY0wfeIRuI",
             authDomain: "soulboard-524df.firebaseapp.com",
             projectId: "soulboard-524df",
-            storageBucket: "soulboard-524df.firebasestorage.app",
+            storageBucket: "soulboard-524df.appspot.com",
             messagingSenderId: "659350261512",
             appId: "1:659350261512:web:528a224cec97664bf2a6bd",
             measurementId: "G-CMSL9H2B8H"
         };
 
         // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
+        const app = firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        // =====================
-        // GLOBAL STATE
-        // =====================
+        // Global variables
         let allPosts = [];
         let selectedMood = '🌱 Neutral';
         let currentUser = null;
-        let isSignUp = false;
 
-        // =====================
-        // UI ELEMENTS
-        // =====================
-        const loadingState = document.getElementById('loadingState');
+        // DOM References
         const authContainer = document.getElementById('authContainer');
-        const appContainer = document.getElementById('appContainer');
-        const authForm = document.getElementById('authForm');
-        const authTitle = document.getElementById('authTitle');
-        const authSubmitBtn = document.getElementById('authSubmitBtn');
-        const authToggleText = document.getElementById('authToggleText');
-        const authToggleBtn = document.getElementById('authToggleBtn');
-        const errorMessage = document.getElementById('errorMessage');
+        const journalContainer = document.getElementById('journalContainer');
+        const loginForm = document.getElementById('loginForm');
+        const signupForm = document.getElementById('signupForm');
+        const loginTab = document.getElementById('loginTab');
+        const signupTab = document.getElementById('signupTab');
+        const loginError = document.getElementById('loginError');
+        const signupError = document.getElementById('signupError');
         const userEmail = document.getElementById('userEmail');
+        const postsFeed = document.getElementById('postsFeed');
 
-        // =====================
-        // AUTHENTICATION SYSTEM
-        // =====================
-        auth.onAuthStateChanged((user) => {
-            loadingState.classList.add('hidden');
+        // Auth Toggle
+        loginTab.addEventListener('click', () => {
+            loginTab.classList.add('active');
+            signupTab.classList.remove('active');
+            loginForm.style.display = 'flex';
+            signupForm.style.display = 'none';
+            loginError.textContent = '';
+            signupError.textContent = '';
+        });
+
+        signupTab.addEventListener('click', () => {
+            signupTab.classList.add('active');
+            loginTab.classList.remove('active');
+            signupForm.style.display = 'flex';
+            loginForm.style.display = 'none';
+            loginError.textContent = '';
+            signupError.textContent = '';
+        });
+
+        // Login form submission
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
             
-            if (user) {
-                currentUser = user;
-                showApp();
-                loadPosts();
-            } else {
-                currentUser = null;
-                showAuth();
+            try {
+                loginError.textContent = 'Logging in...';
+                const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                currentUser = userCredential.user;
+                loginError.textContent = '';
+                showJournal();
+            } catch (error) {
+                console.error("Login error:", error);
+                loginError.textContent = error.message;
             }
         });
 
-        function showAuth() {
-            authContainer.classList.remove('hidden');
-            appContainer.classList.add('hidden');
-            document.getElementById('emailInput').value = '';
-            document.getElementById('passwordInput').value = '';
-            hideError();
+        // Signup form submission
+        signupForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('signupEmail').value;
+            const password = document.getElementById('signupPassword').value;
+            const confirm = document.getElementById('signupConfirm').value;
+            
+            if (password !== confirm) {
+                signupError.textContent = "Passwords don't match";
+                return;
+            }
+            
+            try {
+                signupError.textContent = 'Creating account...';
+                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                currentUser = userCredential.user;
+                signupError.textContent = '';
+                showJournal();
+            } catch (error) {
+                console.error("Signup error:", error);
+                signupError.textContent = error.message;
+            }
+        });
+
+        // Sign out function
+        function signOut() {
+            auth.signOut().then(() => {
+                allPosts = [];
+                postsFeed.innerHTML = '<div class="empty-state">Your mental garden is empty... Plant your first thought seed</div>';
+                authContainer.style.display = 'block';
+                journalContainer.style.display = 'none';
+            }).catch(error => {
+                console.error("Sign out error:", error);
+            });
         }
 
-        function showApp() {
-            authContainer.classList.add('hidden');
-            appContainer.classList.remove('hidden');
+        // Show journal after login
+        function showJournal() {
+            authContainer.style.display = 'none';
+            journalContainer.style.display = 'block';
             userEmail.textContent = currentUser.email;
+            loadPosts();
             document.getElementById('journalText').focus();
         }
 
-        authToggleBtn.addEventListener('click', () => {
-            isSignUp = !isSignUp;
-            
-            if (isSignUp) {
-                authTitle.textContent = 'Create Your Journal Account';
-                authSubmitBtn.textContent = 'Create Account';
-                authToggleText.innerHTML = 'Already have an account? <button type="button" id="authToggleBtn">Sign in</button>';
-            } else {
-                authTitle.textContent = 'Welcome Back to Your Journal';
-                authSubmitBtn.textContent = 'Sign In';
-                authToggleText.innerHTML = 'Don\'t have an account? <button type="button" id="authToggleBtn">Create one</button>';
-            }
-            
-            document.getElementById('authToggleBtn').addEventListener('click', arguments.callee);
-            hideError();
-        });
-
-        authForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const email = document.getElementById('emailInput').value;
-            const password = document.getElementById('passwordInput').value;
-            
-            authSubmitBtn.disabled = true;
-            authSubmitBtn.textContent = isSignUp ? 'Creating Account...' : 'Signing In...';
-            
-            try {
-                if (isSignUp) {
-                    await auth.createUserWithEmailAndPassword(email, password);
-                } else {
-                    await auth.signInWithEmailAndPassword(email, password);
-                }
-                hideError();
-            } catch (error) {
-                showError(getErrorMessage(error.code));
-            }
-            
-            authSubmitBtn.disabled = false;
-            authSubmitBtn.textContent = isSignUp ? 'Create Account' : 'Sign In';
-        });
-
-        function showError(message) {
-            errorMessage.textContent = message;
-            errorMessage.classList.remove('hidden');
-        }
-
-        function hideError() {
-            errorMessage.classList.add('hidden');
-        }
-
-        function getErrorMessage(errorCode) {
-            switch (errorCode) {
-                case 'auth/user-not-found':
-                case 'auth/wrong-password':
-                    return 'Invalid email or password';
-                case 'auth/email-already-in-use':
-                    return 'Email already in use';
-                case 'auth/weak-password':
-                    return 'Password should be at least 6 characters';
-                case 'auth/invalid-email':
-                    return 'Invalid email address';
-                default:
-                    return 'An error occurred. Please try again.';
-            }
-        }
-
-        async function logout() {
-            try {
-                await auth.signOut();
-            } catch (error) {
-                console.error('Error signing out:', error);
-            }
-        }
-
-        // =====================
-        // JOURNAL FUNCTIONALITY
-        // =====================
+        // Load posts from Firestore
         async function loadPosts() {
-            if (!currentUser) return;
+            postsFeed.innerHTML = '<div class="spinner"></div>';
             
             try {
                 const snapshot = await db.collection('posts')
@@ -571,61 +583,46 @@
                     .orderBy('date', 'desc')
                     .get();
                 
-                allPosts = snapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
-                }));
-                
-                displayPosts(allPosts);
-            } catch (error) {
-                console.error('Error loading posts:', error);
                 allPosts = [];
-                displayPosts(allPosts);
-            }
-        }
-
-        async function savePost(post) {
-            if (!currentUser) return;
-            
-            try {
-                const docRef = await db.collection('posts').add({
-                    ...post,
-                    userId: currentUser.uid
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    allPosts.push({
+                        id: doc.id,
+                        text: data.text,
+                        mood: data.mood,
+                        date: data.date.toDate()
+                    });
                 });
                 
-                return { id: docRef.id, ...post };
+                displayPosts(allPosts);
             } catch (error) {
-                console.error('Error saving post:', error);
-                throw error;
+                console.error("Error loading posts:", error);
+                postsFeed.innerHTML = '<div class="empty-state">Error loading your journal entries</div>';
             }
         }
 
-        function selectMood(button, mood) {
-            document.querySelectorAll('.mood-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            
-            button.classList.add('active');
-            selectedMood = mood;
-        }
-
+        // Create new post
         async function createPost() {
             const text = document.getElementById('journalText').value.trim();
             
             if (!text) {
-                alert('Please write something before saving!');
+                alert('Please write something before posting!');
                 return;
             }
 
             const newPost = {
+                userId: currentUser.uid,
                 text: text,
                 mood: selectedMood,
-                date: new Date().toISOString()
+                date: new Date()
             };
 
             try {
-                const savedPost = await savePost(newPost);
-                allPosts.unshift(savedPost);
+                // Show loading state
+                const originalButtonText = document.querySelector('.post-btn').textContent;
+                document.querySelector('.post-btn').textContent = 'Planting...';
+                
+                await db.collection('posts').add(newPost);
                 
                 // Clear form
                 document.getElementById('journalText').value = '';
@@ -634,14 +631,20 @@
                 });
                 selectedMood = '🌱 Neutral';
                 
-                // Update UI
+                // Clear search and reload posts
                 document.getElementById('searchInput').value = '';
-                displayPosts(allPosts);
+                await loadPosts();
+                
+                // Restore button text
+                document.querySelector('.post-btn').textContent = originalButtonText;
             } catch (error) {
-                alert('Error saving your reflection. Please try again.');
+                console.error("Error creating post:", error);
+                alert('Error saving your post. Please try again.');
+                document.querySelector('.post-btn').textContent = 'Plant This Thought';
             }
         }
 
+        // Search posts
         function searchPosts() {
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
             
@@ -658,15 +661,14 @@
             displayPosts(filtered);
         }
 
+        // Display posts
         function displayPosts(posts) {
-            const feed = document.getElementById('postsFeed');
-            
             if (posts.length === 0) {
-                feed.innerHTML = `
+                postsFeed.innerHTML = `
                     <div class="empty-state">
                         ${allPosts.length === 0 ? 
-                          'Your journal is empty... Write your first reflection' : 
-                          'No reflections match your search'}
+                          'Your mental garden is empty... Plant your first thought seed' : 
+                          'No posts match your search'}
                     </div>
                 `;
                 return;
@@ -674,7 +676,7 @@
 
             let html = '';
             posts.forEach(post => {
-                const date = new Date(post.date).toLocaleDateString('en-US', {
+                const date = post.date.toLocaleDateString('en-US', {
                     month: 'short',
                     day: 'numeric',
                     year: 'numeric',
@@ -693,13 +695,33 @@
                 `;
             });
 
-            feed.innerHTML = html;
+            postsFeed.innerHTML = html;
         }
 
-        // Initialize the app
-        window.onload = () => {
-            loadingState.classList.remove('hidden');
-        };
+        // Select mood
+        function selectMood(button, mood) {
+            // Remove active class from all buttons
+            document.querySelectorAll('.mood-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Add active class to clicked button
+            button.classList.add('active');
+            selectedMood = mood;
+        }
+
+        // Initialize app when page loads
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                // User is signed in
+                currentUser = user;
+                showJournal();
+            } else {
+                // No user is signed in
+                authContainer.style.display = 'block';
+                journalContainer.style.display = 'none';
+            }
+        });
     </script>
 </body>
 </html>
