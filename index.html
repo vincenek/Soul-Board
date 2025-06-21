@@ -480,6 +480,7 @@
         let currentUser = null;
         let isSignUp = false;
         let debounceTimer;
+        let unsubscribeListener = null;
 
         // UI Elements
         const loadingState = document.getElementById('loadingState');
@@ -503,9 +504,14 @@
             if (user) {
                 currentUser = user;
                 showApp();
-                loadPosts();
+                setupPostsListener();
             } else {
                 currentUser = null;
+                // Unsubscribe from real-time listener
+                if (unsubscribeListener) {
+                    unsubscribeListener();
+                    unsubscribeListener = null;
+                }
                 showAuth();
             }
         });
@@ -615,28 +621,36 @@
             }
         }
 
-        // Load posts from Firestore
-        async function loadPosts() {
+        // Setup real-time listener for posts
+        function setupPostsListener() {
             if (!currentUser) return;
             
+            // Unsubscribe from any existing listener
+            if (unsubscribeListener) {
+                unsubscribeListener();
+            }
+            
             try {
-                const snapshot = await db.collection('posts')
+                unsubscribeListener = db.collection('posts')
                     .where('userId', '==', currentUser.uid)
                     .orderBy('timestamp', 'desc')
-                    .get();
-                
-                allPosts = snapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data(),
-                    timestamp: doc.data().timestamp?.toDate() || new Date()
-                }));
-                
-                displayPosts(allPosts);
+                    .onSnapshot(snapshot => {
+                        allPosts = snapshot.docs.map(doc => {
+                            const data = doc.data();
+                            return {
+                                id: doc.id,
+                                ...data,
+                                timestamp: data.timestamp?.toDate() || new Date()
+                            };
+                        });
+                        displayPosts(allPosts);
+                    }, error => {
+                        console.error('Error listening to posts:', error);
+                        postError.textContent = 'Error loading entries. Please try refreshing.';
+                        postError.classList.remove('hidden');
+                    });
             } catch (error) {
-                console.error('Error loading posts:', error);
-                // Fallback to empty state
-                allPosts = [];
-                displayPosts(allPosts);
+                console.error('Error setting up listener:', error);
             }
         }
 
@@ -645,17 +659,12 @@
             if (!currentUser) return;
             
             try {
-                const docRef = await db.collection('posts').add({
+                await db.collection('posts').add({
                     ...post,
                     userId: currentUser.uid,
                     timestamp: firebase.firestore.FieldValue.serverTimestamp()
                 });
-                
-                return {
-                    id: docRef.id,
-                    ...post,
-                    timestamp: new Date()
-                };
+                return true;
             } catch (error) {
                 console.error('Error saving post:', error);
                 throw error;
@@ -700,8 +709,7 @@
             };
 
             try {
-                const savedPost = await savePost(newPost);
-                allPosts.unshift(savedPost);
+                await savePost(newPost);
                 
                 // Clear form
                 document.getElementById('journalText').value = '';
@@ -710,10 +718,6 @@
                 });
                 selectedMood = '🌱 Neutral';
                 
-                // Clear search and show all posts
-                document.getElementById('searchInput').value = '';
-                displayPosts(allPosts);
-                
                 // Show success message
                 postSuccess.classList.remove('hidden');
                 hidePostError();
@@ -721,7 +725,7 @@
                     postSuccess.classList.add('hidden');
                 }, 3000);
             } catch (error) {
-                showPostError('Error saving your post. Please try again.');
+                showPostError('Error saving your entry. Please try again.');
             }
         }
 
@@ -785,7 +789,6 @@
 
             let html = '';
             posts.forEach(post => {
-                // Handle both server timestamp and local date
                 const dateObj = post.timestamp ? new Date(post.timestamp) : new Date();
                 
                 const date = dateObj.toLocaleDateString('en-US', {
