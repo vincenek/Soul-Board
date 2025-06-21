@@ -20,6 +20,7 @@
             --border: #C4D8D2;
             --accent: #83C5BE;
             --error: #E76F51;
+            --success: #2A9D8F;
         }
 
         * {
@@ -255,6 +256,7 @@
             margin-bottom: 1.2rem;
             box-shadow: 0 2px 12px rgba(42, 157, 143, 0.05);
             transition: transform 0.2s ease;
+            position: relative;
         }
 
         .post-card:hover {
@@ -317,9 +319,47 @@
             text-align: center;
         }
 
+        .success-message {
+            background: rgba(42, 157, 143, 0.1);
+            color: var(--success);
+            padding: 0.8rem;
+            border-radius: 0.6rem;
+            margin-bottom: 1rem;
+            text-align: center;
+            animation: fadeOut 3s forwards;
+        }
+
+        .delete-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(231, 111, 81, 0.1);
+            border: none;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--error);
+            font-size: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .delete-btn:hover {
+            background: rgba(231, 111, 81, 0.2);
+        }
+
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeOut {
+            0% { opacity: 1; }
+            70% { opacity: 1; }
+            100% { opacity: 0; height: 0; padding: 0; margin: 0; }
         }
 
         @media (max-width: 480px) {
@@ -345,20 +385,21 @@
 <body>
     <header class="header">
         <div class="logo">🌿</div>
-        <h1 class="tagline">Mindful Nature Journal</h1>
+        <h1 class="tagline">SoulBoard Pro | Mental Wellness Journal</h1>
     </header>
 
     <!-- Loading State -->
     <div id="loadingState" class="loading">
-        Connecting to your garden...
+        Connecting to your journal...
     </div>
 
     <!-- Authentication Container -->
     <div id="authContainer" class="auth-container hidden">
         <div id="errorMessage" class="error-message hidden"></div>
+        <div id="successMessage" class="success-message hidden"></div>
         
         <form id="authForm" class="auth-form">
-            <h2 id="authTitle">Welcome to Your Digital Garden</h2>
+            <h2 id="authTitle">Welcome to Your Digital Journal</h2>
             <input type="email" id="emailInput" class="auth-input" placeholder="Email" required>
             <input type="password" id="passwordInput" class="auth-input" placeholder="Password" required>
             <button type="submit" id="authSubmitBtn" class="auth-btn">Sign In</button>
@@ -379,8 +420,11 @@
         </div>
 
         <main class="journal-container">
+            <div id="postSuccess" class="success-message hidden">Journal entry saved successfully!</div>
+            <div id="postError" class="error-message hidden"></div>
+            
             <section class="editor">
-                <textarea id="journalText" placeholder="What's growing in your mind today?"></textarea>
+                <textarea id="journalText" placeholder="What's on your mind today?"></textarea>
                 
                 <div class="mood-grid">
                     <button class="mood-btn" onclick="selectMood(this, '🌻 Happy')">🌻 Happy</button>
@@ -393,21 +437,21 @@
                     <button class="mood-btn" onclick="selectMood(this, '🎉 Celebratory')">🎉 Celebratory</button>
                 </div>
 
-                <button class="post-btn" onclick="createPost()">Plant This Thought</button>
+                <button class="post-btn" onclick="createPost()">Save Journal Entry</button>
 
                 <div class="search-container">
                     <input 
                         type="text" 
                         class="search-bar" 
                         id="searchInput"
-                        placeholder="Search your thoughts..."
+                        placeholder="Search your entries..."
                         oninput="debouncedSearch()">
                 </div>
             </section>
 
             <section class="posts-feed" id="postsFeed">
                 <div class="empty-state">
-                    Your mental garden is empty... Plant your first thought seed
+                    Your journal is empty... Add your first entry
                 </div>
             </section>
         </main>
@@ -447,7 +491,10 @@
         const authToggleText = document.getElementById('authToggleText');
         const authToggleBtn = document.getElementById('authToggleBtn');
         const errorMessage = document.getElementById('errorMessage');
+        const successMessage = document.getElementById('successMessage');
         const userEmail = document.getElementById('userEmail');
+        const postSuccess = document.getElementById('postSuccess');
+        const postError = document.getElementById('postError');
 
         // Authentication state observer
         auth.onAuthStateChanged((user) => {
@@ -482,11 +529,11 @@
             isSignUp = !isSignUp;
             
             if (isSignUp) {
-                authTitle.textContent = 'Create Your Garden Account';
+                authTitle.textContent = 'Create Your Journal Account';
                 authSubmitBtn.textContent = 'Create Account';
                 authToggleText.innerHTML = 'Already have an account? <button type="button" id="authToggleBtn">Sign in</button>';
             } else {
-                authTitle.textContent = 'Welcome Back to Your Garden';
+                authTitle.textContent = 'Welcome Back to Your Journal';
                 authSubmitBtn.textContent = 'Sign In';
                 authToggleText.innerHTML = 'Don\'t have an account? <button type="button" id="authToggleBtn">Create one</button>';
             }
@@ -509,6 +556,7 @@
             try {
                 if (isSignUp) {
                     await auth.createUserWithEmailAndPassword(email, password);
+                    showSuccess('Account created successfully!');
                 } else {
                     await auth.signInWithEmailAndPassword(email, password);
                 }
@@ -525,6 +573,15 @@
         function showError(message) {
             errorMessage.textContent = message;
             errorMessage.classList.remove('hidden');
+        }
+
+        // Show success message
+        function showSuccess(message) {
+            successMessage.textContent = message;
+            successMessage.classList.remove('hidden');
+            setTimeout(() => {
+                successMessage.classList.add('hidden');
+            }, 3000);
         }
 
         // Hide error message
@@ -570,7 +627,8 @@
                 
                 allPosts = snapshot.docs.map(doc => ({
                     id: doc.id,
-                    ...doc.data()
+                    ...doc.data(),
+                    timestamp: doc.data().timestamp?.toDate() || new Date()
                 }));
                 
                 displayPosts(allPosts);
@@ -596,11 +654,24 @@
                 return {
                     id: docRef.id,
                     ...post,
-                    timestamp: new Date() // Temporary until loaded from server
+                    timestamp: new Date()
                 };
             } catch (error) {
                 console.error('Error saving post:', error);
                 throw error;
+            }
+        }
+
+        // Delete post from Firestore
+        async function deletePost(postId) {
+            if (!currentUser) return;
+            
+            try {
+                await db.collection('posts').doc(postId).delete();
+                return true;
+            } catch (error) {
+                console.error('Error deleting post:', error);
+                return false;
             }
         }
 
@@ -619,7 +690,7 @@
             const text = document.getElementById('journalText').value.trim();
             
             if (!text) {
-                alert('Please write something before posting!');
+                showPostError('Please write something before posting!');
                 return;
             }
 
@@ -642,9 +713,27 @@
                 // Clear search and show all posts
                 document.getElementById('searchInput').value = '';
                 displayPosts(allPosts);
+                
+                // Show success message
+                postSuccess.classList.remove('hidden');
+                hidePostError();
+                setTimeout(() => {
+                    postSuccess.classList.add('hidden');
+                }, 3000);
             } catch (error) {
-                alert('Error saving your post. Please try again.');
+                showPostError('Error saving your post. Please try again.');
             }
+        }
+
+        // Show post error message
+        function showPostError(message) {
+            postError.textContent = message;
+            postError.classList.remove('hidden');
+        }
+
+        // Hide post error message
+        function hidePostError() {
+            postError.classList.add('hidden');
         }
 
         // Debounced search
@@ -687,8 +776,8 @@
                 feed.innerHTML = `
                     <div class="empty-state">
                         ${allPosts.length === 0 ? 
-                          'Your mental garden is empty... Plant your first thought seed' : 
-                          'No posts match your search'}
+                          'Your journal is empty... Add your first entry' : 
+                          'No entries match your search'}
                     </div>
                 `;
                 return;
@@ -697,9 +786,7 @@
             let html = '';
             posts.forEach(post => {
                 // Handle both server timestamp and local date
-                const dateObj = post.timestamp ? 
-                    (post.timestamp.toDate ? post.timestamp.toDate() : new Date(post.timestamp)) : 
-                    new Date();
+                const dateObj = post.timestamp ? new Date(post.timestamp) : new Date();
                 
                 const date = dateObj.toLocaleDateString('en-US', {
                     month: 'short',
@@ -715,7 +802,8 @@
                     post.text.replace(/\n/g, '<br>');
 
                 html += `
-                    <div class="post-card">
+                    <div class="post-card" id="post-${post.id}">
+                        <button class="delete-btn" onclick="deletePostHandler('${post.id}')">✕</button>
                         <div class="post-meta">
                             <div class="post-date">${date}</div>
                             <div class="post-mood">${post.mood}</div>
@@ -727,6 +815,32 @@
 
             feed.innerHTML = html;
         }
+
+        // Delete post handler
+        async function deletePostHandler(postId) {
+            if (confirm('Are you sure you want to delete this journal entry?')) {
+                const success = await deletePost(postId);
+                if (success) {
+                    // Remove from local array
+                    allPosts = allPosts.filter(post => post.id !== postId);
+                    // Remove from DOM
+                    document.getElementById(`post-${postId}`)?.remove();
+                    // If no posts left, show empty state
+                    if (allPosts.length === 0) {
+                        displayPosts([]);
+                    }
+                } else {
+                    alert('Failed to delete entry. Please try again.');
+                }
+            }
+        }
+
+        // Initialize the app
+        function init() {
+            loadingState.classList.remove('hidden');
+        }
+
+        init();
     </script>
 </body>
 </html>
