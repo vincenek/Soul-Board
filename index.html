@@ -5,37 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SoulBoard Pro | Mental Wellness Journal</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌿</text></svg>">
-    
-    <!-- Firebase SDK -->
-    <script type="module">
-        // Import the functions you need from the SDKs you need
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, where, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-
-        // Your Firebase configuration - REPLACE WITH YOUR CONFIG
-        const firebaseConfig = {
-            apiKey: "AIzaSyBbfiIeI-LkRNF60p4BYw2l4BY0wfeIRuI",
-            authDomain: "soulboard-524df.firebaseapp.com",
-            projectId: "soulboard-524df",
-            storageBucket: "soulboard-524df.firebasestorage.app",
-            messagingSenderId: "659350261512",
-            appId: "1:659350261512:web:528a224cec97664bf2a6bd",
-            measurementId: "G-CMSL9H2B8H"
-        };
-
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
-        // Make Firebase available globally
-        window.auth = auth;
-        window.db = db;
-        window.firebaseAuth = { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged };
-        window.firestore = { collection, addDoc, query, orderBy, onSnapshot, where, serverTimestamp };
-    </script>
-
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <style>
         :root {
             --primary: #2A9D8F;
@@ -45,6 +17,7 @@
             --border: #C4D8D2;
             --accent: #83C5BE;
             --error: #E76F51;
+            --auth-bg: rgba(255, 255, 255, 0.95);
         }
 
         * {
@@ -83,105 +56,13 @@
             letter-spacing: -0.02em;
         }
 
-        .auth-container, .journal-container {
+        .journal-container {
             background: rgba(255, 255, 255, 0.95);
             border-radius: 1rem;
             box-shadow: 0 8px 32px rgba(42, 157, 143, 0.08);
             padding: 2rem;
             margin-bottom: 2rem;
             backdrop-filter: blur(4px);
-        }
-
-        .auth-form {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .auth-input {
-            padding: 1rem;
-            border: 2px solid var(--border);
-            border-radius: 0.6rem;
-            font-size: 1rem;
-            background: rgba(244, 249, 247, 0.8);
-            transition: all 0.2s ease;
-        }
-
-        .auth-input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(42, 157, 143, 0.1);
-        }
-
-        .auth-btn {
-            background: linear-gradient(135deg, var(--primary) 0%, #34A798 100%);
-            color: white;
-            border: none;
-            border-radius: 0.6rem;
-            padding: 1rem 2rem;
-            font-size: 1rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: transform 0.2s ease;
-        }
-
-        .auth-btn:hover {
-            transform: translateY(-1px);
-        }
-
-        .auth-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .auth-toggle {
-            text-align: center;
-            margin-top: 1rem;
-            color: #5C8374;
-        }
-
-        .auth-toggle button {
-            background: none;
-            border: none;
-            color: var(--primary);
-            cursor: pointer;
-            text-decoration: underline;
-        }
-
-        .user-info {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-            padding: 1rem;
-            background: rgba(42, 157, 143, 0.1);
-            border-radius: 0.6rem;
-        }
-
-        .logout-btn {
-            background: var(--error);
-            color: white;
-            border: none;
-            border-radius: 0.4rem;
-            padding: 0.5rem 1rem;
-            font-size: 0.9rem;
-            cursor: pointer;
-        }
-
-        .error-message {
-            background: rgba(231, 111, 81, 0.1);
-            color: var(--error);
-            padding: 1rem;
-            border-radius: 0.6rem;
-            margin-bottom: 1rem;
-            border: 1px solid rgba(231, 111, 81, 0.3);
-        }
-
-        .loading {
-            text-align: center;
-            padding: 2rem;
-            color: #5C8374;
         }
 
         .editor textarea {
@@ -255,12 +136,6 @@
             transform: translateY(0);
         }
 
-        .post-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-
         .search-container {
             margin: 1.5rem 0;
         }
@@ -292,6 +167,7 @@
             margin-bottom: 1.2rem;
             box-shadow: 0 2px 12px rgba(42, 157, 143, 0.05);
             transition: transform 0.2s ease;
+            position: relative;
         }
 
         .post-card:hover {
@@ -335,8 +211,146 @@
             font-style: italic;
         }
 
-        .hidden {
-            display: none;
+        /* Auth container styles */
+        .auth-container {
+            background: var(--auth-bg);
+            border-radius: 1rem;
+            box-shadow: 0 8px 32px rgba(42, 157, 143, 0.08);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(4px);
+            max-width: 500px;
+            margin: 2rem auto;
+        }
+
+        .auth-title {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+        }
+
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        .form-input {
+            padding: 0.8rem 1rem;
+            border: 2px solid var(--border);
+            border-radius: 0.6rem;
+            font-size: 1rem;
+            background: rgba(244, 249, 247, 0.8);
+            transition: all 0.2s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(42, 157, 143, 0.1);
+        }
+
+        .auth-btn {
+            background: linear-gradient(135deg, var(--primary) 0%, #34A798 100%);
+            color: white;
+            border: none;
+            border-radius: 0.6rem;
+            padding: 0.8rem;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            margin-top: 0.5rem;
+        }
+
+        .auth-btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .auth-switch {
+            text-align: center;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .auth-switch a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .auth-switch a:hover {
+            text-decoration: underline;
+        }
+
+        .error-message {
+            color: var(--error);
+            font-size: 0.9rem;
+            margin-top: 0.2rem;
+            text-align: center;
+        }
+
+        .user-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding: 0.8rem 1.2rem;
+            background: rgba(42, 157, 143, 0.1);
+            border-radius: 0.6rem;
+        }
+
+        .user-email {
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        .logout-btn {
+            background: none;
+            border: none;
+            color: var(--primary);
+            cursor: pointer;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .sync-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--primary);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+
+        .sync-indicator .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
         }
 
         @keyframes fadeIn {
@@ -344,12 +358,17 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
         @media (max-width: 480px) {
             body {
                 padding: 1rem;
             }
             
-            .auth-container, .journal-container {
+            .journal-container, .auth-container {
                 padding: 1.5rem;
             }
             
@@ -365,257 +384,316 @@
         <h1 class="tagline">Mindful Nature Journal</h1>
     </header>
 
-    <!-- Authentication Container -->
-    <div id="authContainer" class="auth-container">
-        <div id="authForm">
-            <h2 id="authTitle">Welcome Back</h2>
-            <div id="errorMessage" class="error-message hidden"></div>
-            
-            <div class="auth-form">
-                <input type="email" id="authEmail" class="auth-input" placeholder="Enter your email" required>
-                <input type="password" id="authPassword" class="auth-input" placeholder="Enter your password" required>
-                <button id="authSubmit" class="auth-btn">Sign In</button>
+    <div id="authSection" class="auth-container">
+        <h2 class="auth-title">Sign In to SoulBoard Pro</h2>
+        <div id="authForm" class="auth-form">
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input type="email" id="emailInput" class="form-input" placeholder="your.email@example.com">
             </div>
-            
-            <div class="auth-toggle">
-                <span id="authToggleText">Don't have an account?</span>
-                <button id="authToggleBtn">Sign Up</button>
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <input type="password" id="passwordInput" class="form-input" placeholder="••••••••">
             </div>
+            <button id="signInBtn" class="auth-btn">Sign In</button>
+            <div class="auth-switch">
+                Don't have an account? <a id="switchToSignUp">Sign Up</a>
+            </div>
+            <div id="authError" class="error-message"></div>
+        </div>
+
+        <div id="signUpForm" class="auth-form" style="display: none;">
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input type="email" id="signUpEmail" class="form-input" placeholder="your.email@example.com">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <input type="password" id="signUpPassword" class="form-input" placeholder="••••••••">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Confirm Password</label>
+                <input type="password" id="signUpPasswordConfirm" class="form-input" placeholder="••••••••">
+            </div>
+            <button id="signUpBtn" class="auth-btn">Create Account</button>
+            <div class="auth-switch">
+                Already have an account? <a id="switchToSignIn">Sign In</a>
+            </div>
+            <div id="signUpError" class="error-message"></div>
         </div>
     </div>
 
-    <!-- Loading State -->
-    <div id="loadingContainer" class="loading hidden">
-        <div>🌱 Loading your garden...</div>
-    </div>
-
-    <!-- Main Journal Container -->
-    <main id="journalContainer" class="journal-container hidden">
-        <div class="user-info">
-            <span>Welcome, <span id="userEmail"></span></span>
-            <button id="logoutBtn" class="logout-btn">Logout</button>
+    <div id="journalSection" style="display: none;">
+        <div id="userInfo" class="user-info">
+            <div>
+                <span class="user-email" id="userEmail">user@example.com</span>
+            </div>
+            <button id="logoutBtn" class="logout-btn">
+                <span>Logout</span>
+            </button>
         </div>
 
-        <section class="editor">
-            <textarea id="journalText" placeholder="What's growing in your mind today?"></textarea>
-            
-            <div class="mood-grid">
-                <button class="mood-btn" onclick="selectMood(this, '🌻 Happy')">🌻 Happy</button>
-                <button class="mood-btn" onclick="selectMood(this, '🍃 Calm')">🍃 Calm</button>
-                <button class="mood-btn" onclick="selectMood(this, '🌧️ Reflective')">🌧️ Reflective</button>
-                <button class="mood-btn" onclick="selectMood(this, '💡 Inspired')">💡 Inspired</button>
-                <button class="mood-btn" onclick="selectMood(this, '🌊 Flow')">🌊 Flow</button>
-                <button class="mood-btn" onclick="selectMood(this, '🔥 Passionate')">🔥 Passionate</button>
-                <button class="mood-btn" onclick="selectMood(this, '🌙 Restful')">🌙 Restful</button>
-                <button class="mood-btn" onclick="selectMood(this, '🎉 Celebratory')">🎉 Celebratory</button>
-            </div>
+        <div class="journal-container">
+            <section class="editor">
+                <textarea id="journalText" placeholder="What's growing in your mind today?"></textarea>
+                
+                <div class="mood-grid">
+                    <button class="mood-btn" onclick="selectMood(this, '🌻 Happy')">🌻 Happy</button>
+                    <button class="mood-btn" onclick="selectMood(this, '🍃 Calm')">🍃 Calm</button>
+                    <button class="mood-btn" onclick="selectMood(this, '🌧️ Reflective')">🌧️ Reflective</button>
+                    <button class="mood-btn" onclick="selectMood(this, '💡 Inspired')">💡 Inspired</button>
+                    <button class="mood-btn" onclick="selectMood(this, '🌊 Flow')">🌊 Flow</button>
+                    <button class="mood-btn" onclick="selectMood(this, '🔥 Passionate')">🔥 Passionate</button>
+                    <button class="mood-btn" onclick="selectMood(this, '🌙 Restful')">🌙 Restful</button>
+                    <button class="mood-btn" onclick="selectMood(this, '🎉 Celebratory')">🎉 Celebratory</button>
+                </div>
 
-            <button class="post-btn" id="postBtn" onclick="createPost()">Plant This Thought</button>
+                <button class="post-btn" onclick="createPost()">Plant This Thought</button>
 
-            <div class="search-container">
-                <input 
-                    type="text" 
-                    class="search-bar" 
-                    id="searchInput"
-                    placeholder="Search your thoughts..."
-                    oninput="searchPosts()">
-            </div>
-        </section>
+                <div class="search-container">
+                    <input 
+                        type="text" 
+                        class="search-bar" 
+                        id="searchInput"
+                        placeholder="Search your thoughts..."
+                        oninput="searchPosts()">
+                </div>
+            </section>
 
-        <section class="posts-feed" id="postsFeed">
-            <div class="empty-state">
-                Your mental garden is empty... Plant your first thought seed
-            </div>
-        </section>
-    </main>
+            <section class="posts-feed" id="postsFeed">
+                <div class="empty-state">
+                    Your mental garden is empty... Plant your first thought seed
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <div id="syncIndicator" class="sync-indicator" style="display: none;">
+        <div class="spinner"></div>
+        <span>Syncing with cloud...</span>
+    </div>
 
     <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBbfiIeI-LkRNF60p4BYw2l4BY0wfeIRuI",
+            authDomain: "soulboard-524df.firebaseapp.com",
+            projectId: "soulboard-524df",
+            storageBucket: "soulboard-524df.appspot.com",
+            messagingSenderId: "659350261512",
+            appId: "1:659350261512:web:528a224cec97664bf2a6bd",
+            measurementId: "G-CMSL9H2B8H"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
+        // DOM Elements
+        const authSection = document.getElementById('authSection');
+        const journalSection = document.getElementById('journalSection');
+        const userEmail = document.getElementById('userEmail');
+        const signInBtn = document.getElementById('signInBtn');
+        const signUpBtn = document.getElementById('signUpBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const switchToSignUp = document.getElementById('switchToSignUp');
+        const switchToSignIn = document.getElementById('switchToSignIn');
+        const authForm = document.getElementById('authForm');
+        const signUpForm = document.getElementById('signUpForm');
+        const authError = document.getElementById('authError');
+        const signUpError = document.getElementById('signUpError');
+        const syncIndicator = document.getElementById('syncIndicator');
+
         // Global variables
         let allPosts = [];
         let selectedMood = '🌱 Neutral';
         let currentUser = null;
-        let isSignUp = false;
-        let postsListener = null;
+        let isOnline = navigator.onLine;
 
-        // DOM elements
-        const authContainer = document.getElementById('authContainer');
-        const loadingContainer = document.getElementById('loadingContainer');
-        const journalContainer = document.getElementById('journalContainer');
-        const authForm = document.getElementById('authForm');
-        const authTitle = document.getElementById('authTitle');
-        const authEmail = document.getElementById('authEmail');
-        const authPassword = document.getElementById('authPassword');
-        const authSubmit = document.getElementById('authSubmit');
-        const authToggleText = document.getElementById('authToggleText');
-        const authToggleBtn = document.getElementById('authToggleBtn');
-        const errorMessage = document.getElementById('errorMessage');
-        const userEmail = document.getElementById('userEmail');
-        const logoutBtn = document.getElementById('logoutBtn');
-        const postBtn = document.getElementById('postBtn');
+        // Online status detection
+        window.addEventListener('online', () => {
+            isOnline = true;
+            if (currentUser) syncPosts();
+        });
+        window.addEventListener('offline', () => {
+            isOnline = false;
+        });
 
-        // Show error message
-        function showError(message) {
-            errorMessage.textContent = message;
-            errorMessage.classList.remove('hidden');
-        }
-
-        // Hide error message
-        function hideError() {
-            errorMessage.classList.add('hidden');
-        }
-
-        // Toggle between sign in and sign up
-        function toggleAuthMode() {
-            isSignUp = !isSignUp;
-            if (isSignUp) {
-                authTitle.textContent = 'Create Account';
-                authSubmit.textContent = 'Sign Up';
-                authToggleText.textContent = 'Already have an account?';
-                authToggleBtn.textContent = 'Sign In';
+        // Auth state listener
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                currentUser = user;
+                userEmail.textContent = user.email;
+                authSection.style.display = 'none';
+                journalSection.style.display = 'block';
+                loadPosts();
             } else {
-                authTitle.textContent = 'Welcome Back';
-                authSubmit.textContent = 'Sign In';
-                authToggleText.textContent = "Don't have an account?";
-                authToggleBtn.textContent = 'Sign Up';
+                currentUser = null;
+                authSection.style.display = 'block';
+                journalSection.style.display = 'none';
+                allPosts = [];
             }
-            hideError();
-        }
+        });
 
-        // Handle authentication
-        async function handleAuth(e) {
-            e.preventDefault();
-            const email = authEmail.value.trim();
-            const password = authPassword.value;
-
-            if (!email || !password) {
-                showError('Please fill in all fields');
-                return;
-            }
-
-            if (password.length < 6) {
-                showError('Password must be at least 6 characters');
-                return;
-            }
-
-            authSubmit.disabled = true;
-            authSubmit.textContent = isSignUp ? 'Creating Account...' : 'Signing In...';
-            hideError();
-
-            try {
-                if (isSignUp) {
-                    await window.firebaseAuth.createUserWithEmailAndPassword(window.auth, email, password);
-                } else {
-                    await window.firebaseAuth.signInWithEmailAndPassword(window.auth, email, password);
-                }
-            } catch (error) {
-                console.error('Auth error:', error);
-                let errorMsg = 'Authentication failed';
-                
-                if (error.code === 'auth/user-not-found') {
-                    errorMsg = 'No account found with this email';
-                } else if (error.code === 'auth/wrong-password') {
-                    errorMsg = 'Incorrect password';
-                } else if (error.code === 'auth/email-already-in-use') {
-                    errorMsg = 'Email already in use';
-                } else if (error.code === 'auth/invalid-email') {
-                    errorMsg = 'Invalid email address';
-                } else if (error.code === 'auth/weak-password') {
-                    errorMsg = 'Password is too weak';
-                }
-                
-                showError(errorMsg);
-            } finally {
-                authSubmit.disabled = false;
-                authSubmit.textContent = isSignUp ? 'Sign Up' : 'Sign In';
-            }
-        }
-
-        // Handle logout
-        async function handleLogout() {
-            try {
-                if (postsListener) {
-                    postsListener();
-                    postsListener = null;
-                }
-                await window.firebaseAuth.signOut(window.auth);
-            } catch (error) {
-                console.error('Logout error:', error);
-            }
-        }
-
-        // Load posts from Firestore
-        function loadPosts() {
-            if (!currentUser) return;
-
-            try {
-                const q = window.firestore.query(
-                    window.firestore.collection(window.db, 'posts'),
-                    window.firestore.where('userId', '==', currentUser.uid),
-                    window.firestore.orderBy('createdAt', 'desc')
-                );
-
-                postsListener = window.firestore.onSnapshot(q, (snapshot) => {
-                    allPosts = [];
-                    snapshot.forEach((doc) => {
-                        const data = doc.data();
-                        allPosts.push({
-                            id: doc.id,
-                            text: data.text,
-                            mood: data.mood,
-                            date: data.createdAt?.toDate() || new Date(),
-                            userId: data.userId
-                        });
-                    });
-                    displayPosts(allPosts);
-                }, (error) => {
-                    console.error('Error loading posts:', error);
-                });
-            } catch (error) {
-                console.error('Error setting up posts listener:', error);
-            }
-        }
-
-        // Create new post
-        async function createPost() {
-            const text = document.getElementById('journalText').value.trim();
+        // Sign in
+        signInBtn.addEventListener('click', () => {
+            const email = document.getElementById('emailInput').value;
+            const password = document.getElementById('passwordInput').value;
             
-            if (!text) {
-                alert('Please write something before posting!');
+            authError.textContent = '';
+            
+            if (!email || !password) {
+                authError.textContent = 'Please fill in all fields';
                 return;
             }
+            
+            auth.signInWithEmailAndPassword(email, password)
+                .catch(error => {
+                    authError.textContent = error.message;
+                });
+        });
 
-            if (!currentUser) {
-                alert('Please sign in to save your posts');
+        // Sign up
+        signUpBtn.addEventListener('click', () => {
+            const email = document.getElementById('signUpEmail').value;
+            const password = document.getElementById('signUpPassword').value;
+            const passwordConfirm = document.getElementById('signUpPasswordConfirm').value;
+            
+            signUpError.textContent = '';
+            
+            if (!email || !password || !passwordConfirm) {
+                signUpError.textContent = 'Please fill in all fields';
                 return;
             }
+            
+            if (password !== passwordConfirm) {
+                signUpError.textContent = 'Passwords do not match';
+                return;
+            }
+            
+            auth.createUserWithEmailAndPassword(email, password)
+                .catch(error => {
+                    signUpError.textContent = error.message;
+                });
+        });
 
-            postBtn.disabled = true;
-            postBtn.textContent = 'Planting...';
+        // Logout
+        logoutBtn.addEventListener('click', () => {
+            auth.signOut();
+        });
 
+        // Switch auth forms
+        switchToSignUp.addEventListener('click', () => {
+            authForm.style.display = 'none';
+            signUpForm.style.display = 'block';
+        });
+
+        switchToSignIn.addEventListener('click', () => {
+            signUpForm.style.display = 'none';
+            authForm.style.display = 'block';
+        });
+
+        // Load posts from both local storage and Firestore
+        function loadPosts() {
             try {
-                await window.firestore.addDoc(window.firestore.collection(window.db, 'posts'), {
-                    text: text,
-                    mood: selectedMood,
-                    userId: currentUser.uid,
-                    createdAt: window.firestore.serverTimestamp()
-                });
-
-                // Clear form
-                document.getElementById('journalText').value = '';
-                document.querySelectorAll('.mood-btn').forEach(btn => {
-                    btn.classList.remove('active');
-                });
-                selectedMood = '🌱 Neutral';
+                // First load from local storage for quick display
+                const saved = localStorage.getItem('journalPosts');
+                const localPosts = saved ? JSON.parse(saved) : [];
                 
-                // Clear search
-                document.getElementById('searchInput').value = '';
-            } catch (error) {
-                console.error('Error creating post:', error);
-                alert('Error saving your post. Please try again.');
-            } finally {
-                postBtn.disabled = false;
-                postBtn.textContent = 'Plant This Thought';
+                // Only show local posts if we don't have any cloud posts yet
+                if (localPosts.length > 0 && allPosts.length === 0) {
+                    allPosts = localPosts;
+                    displayPosts(allPosts);
+                }
+                
+                // Then try to load from Firestore if online and authenticated
+                if (isOnline && currentUser) {
+                    syncIndicator.style.display = 'flex';
+                    
+                    db.collection('journals').doc(currentUser.uid).get()
+                        .then(doc => {
+                            if (doc.exists) {
+                                const cloudPosts = doc.data().posts || [];
+                                
+                                // Merge cloud posts with local posts
+                                const mergedPosts = mergePosts(localPosts, cloudPosts);
+                                
+                                // Update allPosts and display
+                                allPosts = mergedPosts;
+                                displayPosts(allPosts);
+                                
+                                // Save merged posts to local storage
+                                savePostsToLocal();
+                                
+                                // Save merged posts to cloud
+                                savePostsToCloud();
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error loading posts:', error);
+                        })
+                        .finally(() => {
+                            syncIndicator.style.display = 'none';
+                        });
+                }
+            } catch (e) {
+                console.error('Error loading posts:', e);
             }
+        }
+
+        // Merge local and cloud posts
+        function mergePosts(localPosts, cloudPosts) {
+            // Create a map for quick lookup
+            const postMap = new Map();
+            
+            // Add cloud posts first (newest first)
+            cloudPosts.sort((a, b) => b.date - a.date).forEach(post => {
+                postMap.set(post.id, post);
+            });
+            
+            // Add local posts (overwrite if same ID exists)
+            localPosts.forEach(post => {
+                postMap.set(post.id, post);
+            });
+            
+            // Convert back to array and sort by date
+            return Array.from(postMap.values()).sort((a, b) => b.date - a.date);
+        }
+
+        // Save posts to local storage
+        function savePostsToLocal() {
+            try {
+                localStorage.setItem('journalPosts', JSON.stringify(allPosts));
+            } catch (e) {
+                console.error('Error saving to local storage:', e);
+            }
+        }
+
+        // Save posts to Firestore
+        function savePostsToCloud() {
+            if (!isOnline || !currentUser) return;
+            
+            syncIndicator.style.display = 'flex';
+            
+            db.collection('journals').doc(currentUser.uid).set({
+                posts: allPosts
+            })
+            .catch(error => {
+                console.error('Error saving to cloud:', error);
+            })
+            .finally(() => {
+                setTimeout(() => {
+                    syncIndicator.style.display = 'none';
+                }, 1000);
+            });
+        }
+
+        // Sync posts with cloud
+        function syncPosts() {
+            if (!isOnline || !currentUser) return;
+            
+            savePostsToCloud();
         }
 
         // Select mood
@@ -625,6 +703,43 @@
             });
             button.classList.add('active');
             selectedMood = mood;
+        }
+
+        // Create new post
+        function createPost() {
+            const text = document.getElementById('journalText').value.trim();
+            
+            if (!text) {
+                alert('Please write something before posting!');
+                return;
+            }
+
+            const newPost = {
+                id: Date.now().toString(),
+                text: text,
+                mood: selectedMood,
+                date: Date.now()
+            };
+
+            // Add to beginning of array
+            allPosts.unshift(newPost);
+            displayPosts(allPosts);
+            
+            // Save to local storage
+            savePostsToLocal();
+            
+            // Save to cloud
+            savePostsToCloud();
+            
+            // Clear form
+            document.getElementById('journalText').value = '';
+            document.querySelectorAll('.mood-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            selectedMood = '🌱 Neutral';
+            
+            // Clear search
+            document.getElementById('searchInput').value = '';
         }
 
         // Search posts
@@ -661,7 +776,7 @@
 
             let html = '';
             posts.forEach(post => {
-                const date = post.date.toLocaleDateString('en-US', {
+                const date = new Date(post.date).toLocaleDateString('en-US', {
                     month: 'short',
                     day: 'numeric',
                     year: 'numeric',
@@ -683,71 +798,10 @@
             feed.innerHTML = html;
         }
 
-        // Initialize authentication listener
-        function initAuth() {
-            window.firebaseAuth.onAuthStateChanged(window.auth, (user) => {
-                if (user) {
-                    currentUser = user;
-                    userEmail.textContent = user.email;
-                    
-                    // Show journal, hide auth
-                    authContainer.classList.add('hidden');
-                    loadingContainer.classList.add('hidden');
-                    journalContainer.classList.remove('hidden');
-                    
-                    // Load posts
-                    loadPosts();
-                    
-                    // Focus on textarea
-                    setTimeout(() => {
-                        document.getElementById('journalText').focus();
-                    }, 100);
-                } else {
-                    currentUser = null;
-                    
-                    // Clean up posts listener
-                    if (postsListener) {
-                        postsListener();
-                        postsListener = null;
-                    }
-                    
-                    // Show auth, hide journal
-                    authContainer.classList.remove('hidden');
-                    loadingContainer.classList.add('hidden');
-                    journalContainer.classList.add('hidden');
-                    
-                    // Clear form
-                    authEmail.value = '';
-                    authPassword.value = '';
-                    hideError();
-                }
-            });
-        }
-
-        // Event listeners
-        authToggleBtn.addEventListener('click', toggleAuthMode);
-        authForm.addEventListener('submit', handleAuth);
-        authSubmit.addEventListener('click', handleAuth);
-        logoutBtn.addEventListener('click', handleLogout);
-
-        // Enter key support for auth form
-        authEmail.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') authPassword.focus();
-        });
-        authPassword.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') handleAuth(e);
-        });
-
         // Initialize app when page loads
-        window.addEventListener('load', () => {
-            loadingContainer.classList.remove('hidden');
-            authContainer.classList.add('hidden');
-            
-            // Wait a moment for Firebase to load, then initialize auth
-            setTimeout(() => {
-                initAuth();
-            }, 1000);
-        });
+        window.onload = function() {
+            document.getElementById('journalText').focus();
+        };
     </script>
 </body>
 </html>
