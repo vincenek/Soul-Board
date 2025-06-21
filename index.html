@@ -479,7 +479,7 @@
             apiKey: "AIzaSyBbfiIeI-LkRNF60p4BYw2l4BY0wfeIRuI",
             authDomain: "soulboard-524df.firebaseapp.com",
             projectId: "soulboard-524df",
-            storageBucket: "soulboard-524df.appspot.com",
+            storageBucket: "soulboard-524df.firebasestorage.app",
             messagingSenderId: "659350261512",
             appId: "1:659350261512:web:528a224cec97664bf2a6bd",
             measurementId: "G-CMSL9H2B8H"
@@ -572,7 +572,19 @@
                 return;
             }
             
+            if (password.length < 6) {
+                signUpError.textContent = 'Password should be at least 6 characters';
+                return;
+            }
+            
             auth.createUserWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    // Create user document in Firestore
+                    return db.collection('users').doc(userCredential.user.uid).set({
+                        email: email,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                })
                 .catch(error => {
                     signUpError.textContent = error.message;
                 });
@@ -611,34 +623,37 @@
                 if (isOnline && currentUser) {
                     syncIndicator.style.display = 'flex';
                     
-                    db.collection('journals').doc(currentUser.uid).get()
-                        .then(doc => {
-                            if (doc.exists) {
-                                const cloudPosts = doc.data().posts || [];
-                                
-                                // Merge cloud posts with local posts
-                                const mergedPosts = mergePosts(localPosts, cloudPosts);
-                                
-                                // Update allPosts and display
-                                allPosts = mergedPosts;
-                                displayPosts(allPosts);
-                                
-                                // Save merged posts to local storage
-                                savePostsToLocal();
-                                
-                                // Save merged posts to cloud
-                                savePostsToCloud();
-                            }
+                    // Get user-specific collection
+                    const userRef = db.collection('users').doc(currentUser.uid);
+                    
+                    userRef.collection('posts').orderBy('date', 'desc').get()
+                        .then(querySnapshot => {
+                            const cloudPosts = [];
+                            querySnapshot.forEach(doc => {
+                                cloudPosts.push(doc.data());
+                            });
+                            
+                            // Merge cloud posts with local posts
+                            const mergedPosts = mergePosts(localPosts, cloudPosts);
+                            
+                            // Update allPosts and display
+                            allPosts = mergedPosts;
+                            displayPosts(allPosts);
+                            
+                            // Save merged posts to local storage
+                            savePostsToLocal();
+                            
+                            // Save merged posts to cloud
+                            savePostsToCloud();
                         })
                         .catch(error => {
                             console.error('Error loading posts:', error);
-                        })
-                        .finally(() => {
                             syncIndicator.style.display = 'none';
                         });
                 }
             } catch (e) {
                 console.error('Error loading posts:', e);
+                syncIndicator.style.display = 'none';
             }
         }
 
@@ -647,8 +662,8 @@
             // Create a map for quick lookup
             const postMap = new Map();
             
-            // Add cloud posts first (newest first)
-            cloudPosts.sort((a, b) => b.date - a.date).forEach(post => {
+            // Add cloud posts first
+            cloudPosts.forEach(post => {
                 postMap.set(post.id, post);
             });
             
@@ -676,8 +691,26 @@
             
             syncIndicator.style.display = 'flex';
             
-            db.collection('journals').doc(currentUser.uid).set({
-                posts: allPosts
+            const userRef = db.collection('users').doc(currentUser.uid);
+            const batch = db.batch();
+            
+            // Clear existing posts in Firestore
+            userRef.collection('posts').get().then(snapshot => {
+                snapshot.forEach(doc => {
+                    batch.delete(doc.ref);
+                });
+                
+                // Add all posts to batch
+                allPosts.forEach(post => {
+                    const postRef = userRef.collection('posts').doc(post.id);
+                    batch.set(postRef, post);
+                });
+                
+                // Commit the batch
+                return batch.commit();
+            })
+            .then(() => {
+                console.log('All posts saved to Firestore');
             })
             .catch(error => {
                 console.error('Error saving to cloud:', error);
@@ -800,7 +833,7 @@
 
         // Initialize app when page loads
         window.onload = function() {
-            document.getElementById('journalText').focus();
+            document.getElementById('emailInput').focus();
         };
     </script>
 </body>
