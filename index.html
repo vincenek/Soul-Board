@@ -401,7 +401,7 @@
                         class="search-bar" 
                         id="searchInput"
                         placeholder="Search your thoughts..."
-                        oninput="searchPosts()">
+                        oninput="debouncedSearch()">
                 </div>
             </section>
 
@@ -419,14 +419,14 @@
             apiKey: "AIzaSyBbfiIeI-LkRNF60p4BYw2l4BY0wfeIRuI",
             authDomain: "soulboard-524df.firebaseapp.com",
             projectId: "soulboard-524df",
-            storageBucket: "soulboard-524df.firebasestorage.app",
+            storageBucket: "soulboard-524df.appspot.com",
             messagingSenderId: "659350261512",
             appId: "1:659350261512:web:528a224cec97664bf2a6bd",
             measurementId: "G-CMSL9H2B8H"
         };
 
         // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
+        const app = firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
 
@@ -435,6 +435,7 @@
         let selectedMood = '🌱 Neutral';
         let currentUser = null;
         let isSignUp = false;
+        let debounceTimer;
 
         // UI Elements
         const loadingState = document.getElementById('loadingState');
@@ -564,7 +565,7 @@
             try {
                 const snapshot = await db.collection('posts')
                     .where('userId', '==', currentUser.uid)
-                    .orderBy('date', 'desc')
+                    .orderBy('timestamp', 'desc')
                     .get();
                 
                 allPosts = snapshot.docs.map(doc => ({
@@ -588,11 +589,15 @@
             try {
                 const docRef = await db.collection('posts').add({
                     ...post,
-                    userId: currentUser.uid
+                    userId: currentUser.uid,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 
-                post.id = docRef.id;
-                return post;
+                return {
+                    id: docRef.id,
+                    ...post,
+                    timestamp: new Date() // Temporary until loaded from server
+                };
             } catch (error) {
                 console.error('Error saving post:', error);
                 throw error;
@@ -620,8 +625,7 @@
 
             const newPost = {
                 text: text,
-                mood: selectedMood,
-                date: new Date().toISOString()
+                mood: selectedMood
             };
 
             try {
@@ -643,6 +647,12 @@
             }
         }
 
+        // Debounced search
+        function debouncedSearch() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(searchPosts, 300);
+        }
+
         // Search posts
         function searchPosts() {
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
@@ -660,9 +670,18 @@
             displayPosts(filtered);
         }
 
+        // Highlight search terms in text
+        function highlightText(text, searchTerm) {
+            if (!searchTerm) return text;
+            
+            const regex = new RegExp(`(${searchTerm})`, 'gi');
+            return text.replace(regex, '<span class="highlight">$1</span>');
+        }
+
         // Display posts
         function displayPosts(posts) {
             const feed = document.getElementById('postsFeed');
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
             
             if (posts.length === 0) {
                 feed.innerHTML = `
@@ -677,7 +696,12 @@
 
             let html = '';
             posts.forEach(post => {
-                const date = new Date(post.date).toLocaleDateString('en-US', {
+                // Handle both server timestamp and local date
+                const dateObj = post.timestamp ? 
+                    (post.timestamp.toDate ? post.timestamp.toDate() : new Date(post.timestamp)) : 
+                    new Date();
+                
+                const date = dateObj.toLocaleDateString('en-US', {
                     month: 'short',
                     day: 'numeric',
                     year: 'numeric',
@@ -685,13 +709,18 @@
                     minute: '2-digit'
                 });
 
+                // Highlight search terms
+                const highlightedText = searchTerm ? 
+                    highlightText(post.text, searchTerm) : 
+                    post.text.replace(/\n/g, '<br>');
+
                 html += `
                     <div class="post-card">
                         <div class="post-meta">
                             <div class="post-date">${date}</div>
                             <div class="post-mood">${post.mood}</div>
                         </div>
-                        <div class="post-content">${post.text.replace(/\n/g, '<br>')}</div>
+                        <div class="post-content">${highlightedText}</div>
                     </div>
                 `;
             });
