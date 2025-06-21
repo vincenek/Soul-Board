@@ -35,6 +35,7 @@
             margin: 0 auto;
             padding: 2rem 1rem;
             min-height: 100vh;
+            transition: background 0.3s ease;
         }
 
         .header {
@@ -47,6 +48,7 @@
             font-size: 3.2rem;
             margin-bottom: 0.5rem;
             color: var(--primary);
+            animation: pulse 2s infinite;
         }
 
         .tagline {
@@ -63,6 +65,7 @@
             padding: 2rem;
             margin-bottom: 2rem;
             backdrop-filter: blur(4px);
+            transition: all 0.3s ease;
         }
 
         .editor textarea {
@@ -113,6 +116,7 @@
             background: var(--primary);
             color: white;
             border-color: var(--primary);
+            transform: scale(1.05);
         }
 
         .post-btn {
@@ -125,11 +129,13 @@
             font-size: 1rem;
             font-weight: 500;
             cursor: pointer;
-            transition: transform 0.2s ease;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(42, 157, 143, 0.2);
         }
 
         .post-btn:hover {
-            transform: translateY(-1px);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(42, 157, 143, 0.3);
         }
 
         .post-btn:active {
@@ -166,12 +172,14 @@
             border-radius: 0.8rem;
             margin-bottom: 1.2rem;
             box-shadow: 0 2px 12px rgba(42, 157, 143, 0.05);
-            transition: transform 0.2s ease;
+            transition: all 0.3s ease;
             position: relative;
+            border-left: 4px solid var(--primary);
         }
 
         .post-card:hover {
             transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(42, 157, 143, 0.1);
         }
 
         .post-meta {
@@ -221,6 +229,7 @@
             backdrop-filter: blur(4px);
             max-width: 500px;
             margin: 2rem auto;
+            animation: slideUp 0.5s ease-out;
         }
 
         .auth-title {
@@ -270,12 +279,13 @@
             font-size: 1rem;
             font-weight: 500;
             cursor: pointer;
-            transition: transform 0.2s ease;
+            transition: all 0.2s ease;
             margin-top: 0.5rem;
         }
 
         .auth-btn:hover {
-            transform: translateY(-1px);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(42, 157, 143, 0.2);
         }
 
         .auth-switch {
@@ -310,6 +320,7 @@
             padding: 0.8rem 1.2rem;
             background: rgba(42, 157, 143, 0.1);
             border-radius: 0.6rem;
+            animation: fadeIn 0.5s ease;
         }
 
         .user-email {
@@ -326,6 +337,11 @@
             display: flex;
             align-items: center;
             gap: 0.3rem;
+            transition: all 0.2s ease;
+        }
+
+        .logout-btn:hover {
+            color: #1e7a6f;
         }
 
         .sync-indicator {
@@ -342,6 +358,7 @@
             gap: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             z-index: 100;
+            animation: slideIn 0.3s ease;
         }
 
         .sync-indicator .spinner {
@@ -353,14 +370,35 @@
             animation: spin 1s linear infinite;
         }
 
+        .sync-complete {
+            background: #2A9D8F;
+            animation: slideIn 0.3s ease;
+        }
+
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
         }
 
         @media (max-width: 480px) {
@@ -381,7 +419,7 @@
 <body>
     <header class="header">
         <div class="logo">🌿</div>
-        <h1 class="tagline">Mindful Nature Journal</h1>
+        <h1 class="tagline">SoulBoard Pro - Mindful Journaling</h1>
     </header>
 
     <div id="authSection" class="auth-container">
@@ -479,7 +517,7 @@
             apiKey: "AIzaSyBbfiIeI-LkRNF60p4BYw2l4BY0wfeIRuI",
             authDomain: "soulboard-524df.firebaseapp.com",
             projectId: "soulboard-524df",
-            storageBucket: "soulboard-524df.firebasestorage.app",
+            storageBucket: "soulboard-524df.appspot.com",
             messagingSenderId: "659350261512",
             appId: "1:659350261512:web:528a224cec97664bf2a6bd",
             measurementId: "G-CMSL9H2B8H"
@@ -510,15 +548,42 @@
         let selectedMood = '🌱 Neutral';
         let currentUser = null;
         let isOnline = navigator.onLine;
+        let unsubscribeListener = null;
 
         // Online status detection
         window.addEventListener('online', () => {
             isOnline = true;
-            if (currentUser) syncPosts();
+            showSyncIndicator();
+            if (currentUser) syncLocalChanges();
         });
+        
         window.addEventListener('offline', () => {
             isOnline = false;
+            showSyncIndicator("Offline - changes saved locally");
         });
+
+        // Show sync indicator
+        function showSyncIndicator(message = "Syncing with cloud...") {
+            syncIndicator.innerHTML = `<div class="spinner"></div><span>${message}</span>`;
+            syncIndicator.style.display = 'flex';
+            
+            if (message !== "Syncing with cloud...") {
+                setTimeout(() => {
+                    syncIndicator.style.display = 'none';
+                }, 3000);
+            }
+        }
+
+        // Hide sync indicator
+        function hideSyncIndicator() {
+            syncIndicator.innerHTML = `<div class="spinner"></div><span>Sync complete!</span>`;
+            syncIndicator.classList.add('sync-complete');
+            
+            setTimeout(() => {
+                syncIndicator.style.display = 'none';
+                syncIndicator.classList.remove('sync-complete');
+            }, 2000);
+        }
 
         // Auth state listener
         auth.onAuthStateChanged(user => {
@@ -527,14 +592,54 @@
                 userEmail.textContent = user.email;
                 authSection.style.display = 'none';
                 journalSection.style.display = 'block';
-                loadPosts();
+                
+                // Set up real-time listener
+                setupFirestoreListener();
             } else {
                 currentUser = null;
                 authSection.style.display = 'block';
                 journalSection.style.display = 'none';
                 allPosts = [];
+                
+                // Unsubscribe from listener when logged out
+                if (unsubscribeListener) {
+                    unsubscribeListener();
+                    unsubscribeListener = null;
+                }
             }
         });
+
+        // Set up Firestore real-time listener
+        function setupFirestoreListener() {
+            if (unsubscribeListener) unsubscribeListener();
+            
+            const postsRef = db.collection('users').doc(currentUser.uid).collection('posts');
+            
+            showSyncIndicator();
+            
+            unsubscribeListener = postsRef.orderBy('date', 'desc').onSnapshot(snapshot => {
+                const updatedPosts = [];
+                
+                snapshot.forEach(doc => {
+                    updatedPosts.push(doc.data());
+                });
+                
+                // Update allPosts and display
+                allPosts = updatedPosts;
+                displayPosts(allPosts);
+                
+                // Save to local storage
+                savePostsToLocal();
+                
+                hideSyncIndicator();
+            }, error => {
+                console.error('Firestore listener error:', error);
+                hideSyncIndicator();
+                
+                // Load from local storage on error
+                loadLocalPosts();
+            });
+        }
 
         // Sign in
         signInBtn.addEventListener('click', () => {
@@ -606,74 +711,19 @@
             authForm.style.display = 'block';
         });
 
-        // Load posts from both local storage and Firestore
-        function loadPosts() {
+        // Load posts from local storage
+        function loadLocalPosts() {
             try {
-                // First load from local storage for quick display
                 const saved = localStorage.getItem('journalPosts');
                 const localPosts = saved ? JSON.parse(saved) : [];
                 
-                // Only show local posts if we don't have any cloud posts yet
-                if (localPosts.length > 0 && allPosts.length === 0) {
+                if (localPosts.length > 0) {
                     allPosts = localPosts;
                     displayPosts(allPosts);
                 }
-                
-                // Then try to load from Firestore if online and authenticated
-                if (isOnline && currentUser) {
-                    syncIndicator.style.display = 'flex';
-                    
-                    // Get user-specific collection
-                    const userRef = db.collection('users').doc(currentUser.uid);
-                    
-                    userRef.collection('posts').orderBy('date', 'desc').get()
-                        .then(querySnapshot => {
-                            const cloudPosts = [];
-                            querySnapshot.forEach(doc => {
-                                cloudPosts.push(doc.data());
-                            });
-                            
-                            // Merge cloud posts with local posts
-                            const mergedPosts = mergePosts(localPosts, cloudPosts);
-                            
-                            // Update allPosts and display
-                            allPosts = mergedPosts;
-                            displayPosts(allPosts);
-                            
-                            // Save merged posts to local storage
-                            savePostsToLocal();
-                            
-                            // Save merged posts to cloud
-                            savePostsToCloud();
-                        })
-                        .catch(error => {
-                            console.error('Error loading posts:', error);
-                            syncIndicator.style.display = 'none';
-                        });
-                }
             } catch (e) {
-                console.error('Error loading posts:', e);
-                syncIndicator.style.display = 'none';
+                console.error('Error loading local posts:', e);
             }
-        }
-
-        // Merge local and cloud posts
-        function mergePosts(localPosts, cloudPosts) {
-            // Create a map for quick lookup
-            const postMap = new Map();
-            
-            // Add cloud posts first
-            cloudPosts.forEach(post => {
-                postMap.set(post.id, post);
-            });
-            
-            // Add local posts (overwrite if same ID exists)
-            localPosts.forEach(post => {
-                postMap.set(post.id, post);
-            });
-            
-            // Convert back to array and sort by date
-            return Array.from(postMap.values()).sort((a, b) => b.date - a.date);
         }
 
         // Save posts to local storage
@@ -685,48 +735,39 @@
             }
         }
 
-        // Save posts to Firestore
-        function savePostsToCloud() {
-            if (!isOnline || !currentUser) return;
+        // Sync local changes to Firestore
+        function syncLocalChanges() {
+            if (!currentUser) return;
             
-            syncIndicator.style.display = 'flex';
+            const localPosts = JSON.parse(localStorage.getItem('journalPosts') || []);
+            const cloudPosts = allPosts;
             
-            const userRef = db.collection('users').doc(currentUser.uid);
-            const batch = db.batch();
+            // Find posts that exist locally but not in cloud
+            const postsToSync = localPosts.filter(localPost => 
+                !cloudPosts.some(cloudPost => cloudPost.id === localPost.id)
+            );
             
-            // Clear existing posts in Firestore
-            userRef.collection('posts').get().then(snapshot => {
-                snapshot.forEach(doc => {
-                    batch.delete(doc.ref);
-                });
+            if (postsToSync.length > 0) {
+                showSyncIndicator("Syncing local changes...");
                 
-                // Add all posts to batch
-                allPosts.forEach(post => {
+                const batch = db.batch();
+                const userRef = db.collection('users').doc(currentUser.uid);
+                
+                postsToSync.forEach(post => {
                     const postRef = userRef.collection('posts').doc(post.id);
                     batch.set(postRef, post);
                 });
                 
-                // Commit the batch
-                return batch.commit();
-            })
-            .then(() => {
-                console.log('All posts saved to Firestore');
-            })
-            .catch(error => {
-                console.error('Error saving to cloud:', error);
-            })
-            .finally(() => {
-                setTimeout(() => {
-                    syncIndicator.style.display = 'none';
-                }, 1000);
-            });
-        }
-
-        // Sync posts with cloud
-        function syncPosts() {
-            if (!isOnline || !currentUser) return;
-            
-            savePostsToCloud();
+                batch.commit()
+                    .then(() => {
+                        console.log('Local changes synced to Firestore');
+                        hideSyncIndicator();
+                    })
+                    .catch(error => {
+                        console.error('Error syncing local changes:', error);
+                        hideSyncIndicator();
+                    });
+            }
         }
 
         // Select mood
@@ -754,15 +795,29 @@
                 date: Date.now()
             };
 
-            // Add to beginning of array
+            // Add to local array immediately for responsive UI
             allPosts.unshift(newPost);
             displayPosts(allPosts);
             
             // Save to local storage
             savePostsToLocal();
             
-            // Save to cloud
-            savePostsToCloud();
+            // Save to Firestore if online
+            if (isOnline && currentUser) {
+                showSyncIndicator();
+                
+                db.collection('users').doc(currentUser.uid)
+                    .collection('posts').doc(newPost.id).set(newPost)
+                    .then(() => {
+                        hideSyncIndicator();
+                    })
+                    .catch(error => {
+                        console.error('Error saving to Firestore:', error);
+                        hideSyncIndicator();
+                    });
+            } else {
+                showSyncIndicator("Offline - changes saved locally");
+            }
             
             // Clear form
             document.getElementById('journalText').value = '';
@@ -833,6 +888,10 @@
 
         // Initialize app when page loads
         window.onload = function() {
+            // Check if we have local posts to display while loading
+            loadLocalPosts();
+            
+            // Focus on email field
             document.getElementById('emailInput').focus();
         };
     </script>
