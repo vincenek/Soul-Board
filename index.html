@@ -814,6 +814,36 @@
                 align-items: center;
             }
         }
+
+        /* Loading spinner for network graph */
+        .graph-loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            color: var(--primary);
+        }
+        
+        /* Improved node styling */
+        .node {
+            stroke: #fff;
+            stroke-width: 1.5px;
+        }
+        
+        .node-label {
+            font-weight: 600;
+            text-shadow: 0 1px 0 #fff, 1px 0 0 #fff, -1px 0 0 #fff, 0 -1px 0 #fff;
+        }
+        
+        /* Animation for new nodes */
+        @keyframes nodeEnter {
+            from { opacity: 0; r: 0; }
+            to { opacity: 1; }
+        }
+        
+        .node-enter {
+            animation: nodeEnter 0.5s ease-out;
+        }
     </style>
 </head>
 <body>
@@ -1065,6 +1095,7 @@
         let simulation = null;
         let svg = null;
         let zoom = null;
+        let graphRendered = false;
 
         // PWA Installation Handling
         function handlePWAInstall() {
@@ -1382,7 +1413,7 @@
         function syncLocalChanges() {
             if (!currentUser) return;
             
-            const localPosts = JSON.parse(localStorage.getItem('journalPosts') || []);
+            const localPosts = JSON.parse(localStorage.getItem('journalPosts') || '[]');
             const cloudPosts = allPosts;
             
             // Find posts that exist locally but not in cloud
@@ -1518,13 +1549,21 @@
                     minute: '2-digit'
                 });
 
+                // Highlight search term if present
+                let displayText = post.text;
+                const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+                if (searchTerm) {
+                    const regex = new RegExp(`(${searchTerm})`, 'gi');
+                    displayText = displayText.replace(regex, '<span class="highlight">$1</span>');
+                }
+
                 html += `
                     <div class="post-card">
                         <div class="post-meta">
                             <div class="post-date">${date}</div>
                             <div class="post-mood">${post.mood}</div>
                         </div>
-                        <div class="post-content">${post.text.replace(/\n/g, '<br>')}</div>
+                        <div class="post-content">${displayText.replace(/\n/g, '<br>')}</div>
                     </div>
                 `;
             });
@@ -1652,239 +1691,223 @@
                 return;
             }
             
-            // Set up dimensions
-            const width = networkView.clientWidth;
-            const height = networkView.clientHeight;
+            // Show loading state
+            networkView.innerHTML = '<div class="graph-loading"><i class="fas fa-spinner fa-spin"></i> Building your mental map...</div>';
             
-            // Create SVG
-            svg = d3.select("#networkView")
-                .append("svg")
-                .attr("width", width)
-                .attr("height", height)
-                .attr("viewBox", [0, 0, width, height])
-                .attr("style", "max-width: 100%; height: auto;");
-            
-            // Create tooltip
-            const tooltip = d3.select("body")
-                .append("div")
-                .attr("class", "graph-tooltip")
-                .style("opacity", 0);
-            
-            // Create nodes
-            const nodes = soulMapData.map(post => ({
-                id: post.id,
-                text: post.text,
-                mood: post.mood,
-                category: post.category,
-                radius: 10 + (post.text.length / 30), // Size based on content length
-                date: post.date
-            }));
-            
-            // Create links based on shared keywords and categories
-            const links = [];
-            const linkSet = new Set(); // To avoid duplicate links
-            
-            for (let i = 0; i < nodes.length; i++) {
-                for (let j = i + 1; j < nodes.length; j++) {
-                    const sourcePost = soulMapData.find(p => p.id === nodes[i].id);
-                    const targetPost = soulMapData.find(p => p.id === nodes[j].id);
-                    
-                    // Connect nodes that share keywords or categories
-                    const sharedKeywords = sourcePost.keywords.filter(k => 
-                        targetPost.keywords.includes(k));
-                    
-                    if (sharedKeywords.length > 0 || sourcePost.category === targetPost.category) {
-                        const linkId = `${sourcePost.id}-${targetPost.id}`;
-                        const reverseLinkId = `${targetPost.id}-${sourcePost.id}`;
-                        if (!linkSet.has(linkId) && !linkSet.has(reverseLinkId)) {
-                            links.push({
-                                source: nodes[i].id,
-                                target: nodes[j].id,
-                                value: sharedKeywords.length > 0 ? sharedKeywords.length : 1,
-                                type: sharedKeywords.length > 0 ? 'keyword' : 'category'
-                            });
-                            linkSet.add(linkId);
+            // Small delay to allow the DOM to update
+            setTimeout(() => {
+                // Set up dimensions
+                const width = networkView.clientWidth;
+                const height = networkView.clientHeight;
+                
+                // Create SVG
+                svg = d3.select("#networkView")
+                    .html('') // Clear loading message
+                    .append("svg")
+                    .attr("width", width)
+                    .attr("height", height)
+                    .attr("viewBox", [0, 0, width, height]);
+                
+                // Create tooltip
+                const tooltip = d3.select("body")
+                    .append("div")
+                    .attr("class", "graph-tooltip")
+                    .style("opacity", 0);
+                
+                // Create nodes
+                const nodes = soulMapData.map(post => ({
+                    id: post.id,
+                    text: post.text,
+                    mood: post.mood,
+                    category: post.category,
+                    radius: 8 + (post.text.length / 50), // Size based on content length
+                    date: post.date
+                }));
+                
+                // Create links based on shared keywords and categories
+                const links = [];
+                const linkSet = new Set(); // To avoid duplicate links
+                
+                for (let i = 0; i < nodes.length; i++) {
+                    for (let j = i + 1; j < nodes.length; j++) {
+                        const sourcePost = soulMapData.find(p => p.id === nodes[i].id);
+                        const targetPost = soulMapData.find(p => p.id === nodes[j].id);
+                        
+                        // Connect nodes that share keywords or categories
+                        const sharedKeywords = sourcePost.keywords.filter(k => 
+                            targetPost.keywords.includes(k));
+                        
+                        if (sharedKeywords.length > 0 || sourcePost.category === targetPost.category) {
+                            const linkId = `${sourcePost.id}-${targetPost.id}`;
+                            const reverseLinkId = `${targetPost.id}-${sourcePost.id}`;
+                            if (!linkSet.has(linkId) && !linkSet.has(reverseLinkId)) {
+                                links.push({
+                                    source: nodes[i].id,
+                                    target: nodes[j].id,
+                                    value: sharedKeywords.length > 0 ? sharedKeywords.length : 1,
+                                    type: sharedKeywords.length > 0 ? 'keyword' : 'category'
+                                });
+                                linkSet.add(linkId);
+                            }
                         }
                     }
                 }
-            }
-            
-            // Set up force simulation
-            simulation = d3.forceSimulation(nodes)
-                .force("link", d3.forceLink(links).id(d => d.id).distance(100).strength(0.1))
-                .force("charge", d3.forceManyBody().strength(-300))
-                .force("center", d3.forceCenter(width / 2, height / 2))
-                .force("collision", d3.forceCollide().radius(d => d.radius + 5));
-            
-            // Draw links
-            const link = svg.append("g")
-                .attr("class", "links")
-                .selectAll("line")
-                .data(links)
-                .enter().append("line")
-                .attr("class", "link")
-                .attr("stroke-width", d => Math.sqrt(d.value));
-            
-            // Draw nodes
-            const node = svg.append("g")
-                .attr("class", "nodes")
-                .selectAll("circle")
-                .data(nodes)
-                .enter().append("circle")
-                .attr("class", d => `node ${d.category}`)
-                .attr("r", d => d.radius)
-                .call(d3.drag()
-                    .on("start", dragstarted)
-                    .on("drag", dragged)
-                    .on("end", dragended));
-            
-            // Add node labels
-            const label = svg.append("g")
-                .attr("class", "labels")
-                .selectAll("text")
-                .data(nodes)
-                .enter().append("text")
-                .attr("class", "node-label")
-                .text(d => d.mood)
-                .style("font-size", "10px");
-            
-            // Add zoom capabilities
-            zoom = d3.zoom()
-                .scaleExtent([0.1, 4])
-                .on("zoom", (event) => {
-                    svg.attr("transform", event.transform);
-                });
-            
-            svg.call(zoom);
-            
-            // Update positions on each tick
-            simulation.on("tick", () => {
-                link
-                    .attr("x1", d => d.source.x)
-                    .attr("y1", d => d.source.y)
-                    .attr("x2", d => d.target.x)
-                    .attr("y2", d => d.target.y);
                 
-                node
-                    .attr("cx", d => d.x)
-                    .attr("cy", d => d.y);
+                // Set up force simulation
+                simulation = d3.forceSimulation(nodes)
+                    .force("link", d3.forceLink(links).id(d => d.id).distance(100).strength(0.1))
+                    .force("charge", d3.forceManyBody().strength(-200))
+                    .force("center", d3.forceCenter(width / 2, height / 2))
+                    .force("collision", d3.forceCollide().radius(d => d.radius + 5));
                 
-                label
-                    .attr("x", d => d.x)
-                    .attr("y", d => d.y - d.radius - 5);
-            });
-            
-            // Add interactivity
-            node.on("mouseover", function(event, d) {
-                tooltip.transition()
-                    .duration(200)
-                    .style("opacity", .9);
+                // Draw links
+                const link = svg.append("g")
+                    .attr("class", "links")
+                    .selectAll("line")
+                    .data(links)
+                    .enter().append("line")
+                    .attr("class", "link")
+                    .attr("stroke-width", d => Math.sqrt(d.value));
                 
-                const date = new Date(d.date).toLocaleDateString();
-                tooltip.html(`<strong>${d.mood}</strong><br/>${date}<br/>${d.text.substring(0, 100)}${d.text.length > 100 ? '...' : ''}`)
-                    .style("left", (event.pageX + 10) + "px")
-                    .style("top", (event.pageY - 28) + "px");
+                // Draw nodes
+                const node = svg.append("g")
+                    .attr("class", "nodes")
+                    .selectAll("circle")
+                    .data(nodes)
+                    .enter().append("circle")
+                    .attr("class", d => `node ${d.category} node-enter`)
+                    .attr("r", d => d.radius)
+                    .attr("fill", d => getCategoryColor(d.category))
+                    .call(d3.drag()
+                        .on("start", dragstarted)
+                        .on("drag", dragged)
+                        .on("end", dragended));
                 
-                // Highlight connected nodes
-                node.style("opacity", otherNode => {
-                    return isConnected(d, otherNode) ? 1 : 0.2;
+                // Add node labels
+                const label = svg.append("g")
+                    .attr("class", "labels")
+                    .selectAll("text")
+                    .data(nodes)
+                    .enter().append("text")
+                    .attr("class", "node-label")
+                    .text(d => d.mood)
+                    .style("font-size", "10px");
+                
+                // Add zoom capabilities
+                zoom = d3.zoom()
+                    .scaleExtent([0.1, 4])
+                    .on("zoom", (event) => {
+                        svg.attr("transform", event.transform);
+                    });
+                
+                svg.call(zoom);
+                
+                // Update positions on each tick
+                simulation.on("tick", () => {
+                    link
+                        .attr("x1", d => d.source.x)
+                        .attr("y1", d => d.source.y)
+                        .attr("x2", d => d.target.x)
+                        .attr("y2", d => d.target.y);
+                    
+                    node
+                        .attr("cx", d => d.x)
+                        .attr("cy", d => d.y);
+                    
+                    label
+                        .attr("x", d => d.x)
+                        .attr("y", d => d.y - d.radius - 5);
                 });
                 
-                link.style("stroke-opacity", l => {
-                    return l.source.id === d.id || l.target.id === d.id ? 1 : 0.1;
-                });
-            })
-            .on("mouseout", function() {
-                tooltip.transition()
-                    .duration(500)
-                    .style("opacity", 0);
-                
-                // Reset opacity
-                node.style("opacity", 1);
-                link.style("stroke-opacity", 0.6);
-            });
-            
-            // Helper function to check if nodes are connected
-            function isConnected(a, b) {
-                return links.some(l => 
-                    (l.source.id === a.id && l.target.id === b.id) || 
-                    (l.source.id === b.id && l.target.id === a.id)
-                );
-            }
-            
-            // Drag functions
-            function dragstarted(event, d) {
-                if (!event.active) simulation.alphaTarget(0.3).restart();
-                d.fx = d.x;
-                d.fy = d.y;
-            }
-            
-            function dragged(event, d) {
-                d.fx = event.x;
-                d.fy = event.y;
-            }
-            
-            function dragended(event, d) {
-                if (!event.active) simulation.alphaTarget(0);
-                d.fx = null;
-                d.fy = null;
-            }
-            
-            // Draw clusters around nodes of the same category
-            drawClusters();
-        }
-
-        // Draw clusters around nodes of the same category
-        function drawClusters() {
-            const categories = [...new Set(soulMapData.map(post => post.category))];
-            
-            categories.forEach(category => {
-                const categoryNodes = soulMapData.filter(post => post.category === category);
-                if (categoryNodes.length > 1) {
-                    const nodePoints = categoryNodes.map(node => {
-                        const d3Node = simulation.nodes().find(n => n.id === node.id);
-                        return [d3Node.x, d3Node.y];
+                // Add interactivity
+                node.on("mouseover", function(event, d) {
+                    tooltip.transition()
+                        .duration(200)
+                        .style("opacity", .9);
+                    
+                    const date = new Date(d.date).toLocaleDateString();
+                    tooltip.html(`<strong>${d.mood}</strong><br/>${date}<br/>${d.text.substring(0, 100)}${d.text.length > 100 ? '...' : ''}`)
+                        .style("left", (event.pageX + 10) + "px")
+                        .style("top", (event.pageY - 28) + "px");
+                    
+                    // Highlight connected nodes
+                    node.style("opacity", otherNode => {
+                        return isConnected(d, otherNode) ? 1 : 0.2;
                     });
                     
-                    // Calculate cluster center and radius
-                    const centerX = d3.mean(nodePoints, d => d[0]);
-                    const centerY = d3.mean(nodePoints, d => d[1]);
-                    const radius = d3.max(nodePoints, d => Math.sqrt(Math.pow(d[0] - centerX, 2) + Math.pow(d[1] - centerY, 2))) + 20;
+                    link.style("stroke-opacity", l => {
+                        return l.source.id === d.id || l.target.id === d.id ? 1 : 0.1;
+                    });
+                })
+                .on("mouseout", function() {
+                    tooltip.transition()
+                        .duration(500)
+                        .style("opacity", 0);
                     
-                    // Draw cluster circle
-                    svg.append("circle")
-                        .attr("class", "cluster")
-                        .attr("cx", centerX)
-                        .attr("cy", centerY)
-                        .attr("r", radius)
-                        .style("stroke", getCategoryColor(category));
+                    // Reset opacity
+                    node.style("opacity", 1);
+                    link.style("stroke-opacity", 0.6);
+                });
+                
+                // Helper function to check if nodes are connected
+                function isConnected(a, b) {
+                    return links.some(l => 
+                        (l.source.id === a.id && l.target.id === b.id) || 
+                        (l.source.id === b.id && l.target.id === a.id)
+                    );
                 }
-            });
+                
+                // Drag functions
+                function dragstarted(event, d) {
+                    if (!event.active) simulation.alphaTarget(0.3).restart();
+                    d.fx = d.x;
+                    d.fy = d.y;
+                }
+                
+                function dragged(event, d) {
+                    d.fx = event.x;
+                    d.fy = event.y;
+                }
+                
+                function dragended(event, d) {
+                    if (!event.active) simulation.alphaTarget(0);
+                    d.fx = null;
+                    d.fy = null;
+                }
+                
+                graphRendered = true;
+            }, 100);
         }
 
         // Get color for a category
         function getCategoryColor(category) {
             switch(category) {
-                case 'reflection': return 'var(--node-reflection)';
-                case 'goal': return 'var(--node-goal)';
-                case 'affirmation': return 'var(--node-affirmation)';
-                case 'habit': return 'var(--node-habit)';
-                case 'emotion': return 'var(--node-emotion)';
-                default: return 'var(--node-default)';
+                case 'reflection': return getComputedStyle(document.documentElement).getPropertyValue('--node-reflection');
+                case 'goal': return getComputedStyle(document.documentElement).getPropertyValue('--node-goal');
+                case 'affirmation': return getComputedStyle(document.documentElement).getPropertyValue('--node-affirmation');
+                case 'habit': return getComputedStyle(document.documentElement).getPropertyValue('--node-habit');
+                case 'emotion': return getComputedStyle(document.documentElement).getPropertyValue('--node-emotion');
+                default: return getComputedStyle(document.documentElement).getPropertyValue('--node-default');
             }
         }
 
         // Zoom functions
         function zoomIn() {
-            svg.transition().call(zoom.scaleBy, 1.5);
+            if (zoom && graphRendered) {
+                svg.transition().duration(250).call(zoom.scaleBy, 1.5);
+            }
         }
 
         function zoomOut() {
-            svg.transition().call(zoom.scaleBy, 0.75);
+            if (zoom && graphRendered) {
+                svg.transition().duration(250).call(zoom.scaleBy, 0.75);
+            }
         }
 
         function resetView() {
-            svg.transition().call(zoom.transform, d3.zoomIdentity);
+            if (zoom && graphRendered) {
+                svg.transition().duration(250).call(zoom.transform, d3.zoomIdentity);
+            }
         }
 
         // Switch between SoulBoard and SoulMap views
