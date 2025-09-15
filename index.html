@@ -1252,13 +1252,73 @@
             }, 2000);
         }
 
-        // Auth state listener
-        auth.onAuthStateChanged(user => {
+        // NEW FUNCTION: Load user data from Firestore
+        async function loadUserData() {
+            if (!currentUser) return;
+            
+            showSyncIndicator("Loading your data...");
+            
+            try {
+                // Load user posts
+                const postsSnapshot = await db.collection('users').doc(currentUser.uid)
+                    .collection('posts').orderBy('date', 'desc').get();
+                
+                const loadedPosts = [];
+                postsSnapshot.forEach(doc => {
+                    loadedPosts.push(doc.data());
+                });
+                
+                allPosts = loadedPosts;
+                displayPosts(allPosts);
+                processSoulMapData();
+                
+                // Save to local storage as backup
+                savePostsToLocal();
+                
+                hideSyncIndicator();
+            } catch (error) {
+                console.error('Error loading user data:', error);
+                // Fall back to local storage if available
+                loadLocalPosts();
+                hideSyncIndicator();
+            }
+        }
+
+        // NEW FUNCTION: Save user data to Firestore
+        async function saveUserData() {
+            if (!currentUser) return;
+            
+            showSyncIndicator();
+            
+            try {
+                // Save all posts to Firestore using batch operation for efficiency
+                const batch = db.batch();
+                const userPostsRef = db.collection('users').doc(currentUser.uid).collection('posts');
+                
+                allPosts.forEach(post => {
+                    const postRef = userPostsRef.doc(post.id);
+                    batch.set(postRef, post);
+                });
+                
+                await batch.commit();
+                console.log("User data saved to Firestore");
+                hideSyncIndicator();
+            } catch (error) {
+                console.error('Error saving user data:', error);
+                hideSyncIndicator();
+            }
+        }
+
+        // Auth state listener - UPDATED to load user data
+        auth.onAuthStateChanged(async user => {
             if (user) {
                 currentUser = user;
                 userEmail.textContent = user.email;
                 authSection.style.display = 'none';
                 journalSection.style.display = 'block';
+                
+                // Load user data from Firestore
+                await loadUserData();
                 
                 // Set up real-time listener
                 setupFirestoreListener();
@@ -1282,8 +1342,6 @@
             
             const postsRef = db.collection('users').doc(currentUser.uid).collection('posts');
             
-            showSyncIndicator();
-            
             unsubscribeListener = postsRef.orderBy('date', 'desc').onSnapshot(snapshot => {
                 const updatedPosts = [];
                 
@@ -1300,12 +1358,8 @@
                 
                 // Save to local storage
                 savePostsToLocal();
-                
-                hideSyncIndicator();
             }, error => {
                 console.error('Firestore listener error:', error);
-                hideSyncIndicator();
-                
                 // Load from local storage on error
                 loadLocalPosts();
             });
