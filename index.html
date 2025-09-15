@@ -1052,6 +1052,12 @@
         const db = firebase.firestore();
         const auth = firebase.auth();
 
+        // Enable Firestore offline persistence
+        db.enablePersistence()
+          .catch((err) => {
+              console.log('Firestore persistence failed: ', err);
+          });
+
         // DOM Elements
         const authSection = document.getElementById('authSection');
         const journalSection = document.getElementById('journalSection');
@@ -1252,6 +1258,33 @@
             }, 2000);
         }
 
+        // Auth state listener - UPDATED to load user data
+        auth.onAuthStateChanged(async user => {
+            if (user) {
+                currentUser = user;
+                userEmail.textContent = user.email;
+                authSection.style.display = 'none';
+                journalSection.style.display = 'block';
+                
+                // Load user data from Firestore
+                await loadUserData();
+                
+                // Set up real-time listener
+                setupFirestoreListener();
+            } else {
+                currentUser = null;
+                authSection.style.display = 'block';
+                journalSection.style.display = 'none';
+                allPosts = [];
+                
+                // Unsubscribe from listener when logged out
+                if (unsubscribeListener) {
+                    unsubscribeListener();
+                    unsubscribeListener = null;
+                }
+            }
+        });
+
         // NEW FUNCTION: Load user data from Firestore
         async function loadUserData() {
             if (!currentUser) return;
@@ -1308,33 +1341,6 @@
                 hideSyncIndicator();
             }
         }
-
-        // Auth state listener - UPDATED to load user data
-        auth.onAuthStateChanged(async user => {
-            if (user) {
-                currentUser = user;
-                userEmail.textContent = user.email;
-                authSection.style.display = 'none';
-                journalSection.style.display = 'block';
-                
-                // Load user data from Firestore
-                await loadUserData();
-                
-                // Set up real-time listener
-                setupFirestoreListener();
-            } else {
-                currentUser = null;
-                authSection.style.display = 'block';
-                journalSection.style.display = 'none';
-                allPosts = [];
-                
-                // Unsubscribe from listener when logged out
-                if (unsubscribeListener) {
-                    unsubscribeListener();
-                    unsubscribeListener = null;
-                }
-            }
-        });
 
         // Set up Firestore real-time listener
         function setupFirestoreListener() {
