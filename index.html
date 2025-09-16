@@ -258,11 +258,11 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 0.8rem;
+            font-size: 0.9rem;
         }
 
         .post-date {
             color: #5C8374;
-            font-size: 0.85rem;
             font-weight: 500;
         }
 
@@ -1096,7 +1096,6 @@
         let svg = null;
         let zoom = null;
         let graphRendered = false;
-        let userData = {}; // Store user data
 
         // PWA Installation Handling
         function handlePWAInstall() {
@@ -1253,49 +1252,6 @@
             }, 2000);
         }
 
-        // NEW: Load user data from Firestore
-        async function loadUserData() {
-            if (!currentUser) return;
-            
-            try {
-                const userDoc = await db.collection('users').doc(currentUser.uid).get();
-                
-                if (userDoc.exists) {
-                    userData = userDoc.data();
-                    console.log("User data loaded:", userData);
-                    
-                    // Apply any user preferences or settings here
-                    if (userData.preferences) {
-                        // You can apply user preferences to the UI here
-                    }
-                } else {
-                    // Create user document if it doesn't exist
-                    await saveUserData({
-                        email: currentUser.email,
-                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                        lastLogin: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                }
-            } catch (error) {
-                console.error("Error loading user data:", error);
-            }
-        }
-
-        // NEW: Save user data to Firestore
-        async function saveUserData(data) {
-            if (!currentUser) return;
-            
-            try {
-                // Merge new data with existing user data
-                userData = {...userData, ...data};
-                
-                await db.collection('users').doc(currentUser.uid).set(userData, { merge: true });
-                console.log("User data saved successfully");
-            } catch (error) {
-                console.error("Error saving user data:", error);
-            }
-        }
-
         // Auth state listener - UPDATED to load user data
         auth.onAuthStateChanged(async user => {
             if (user) {
@@ -1308,7 +1264,7 @@
                     // Load user data from Firestore
                     await loadUserData();
                     
-                    // Set up real-time listener for posts
+                    // Set up real-time listener
                     setupFirestoreListener();
                 } catch (error) {
                     console.error("Error loading user data:", error);
@@ -1328,6 +1284,91 @@
                 }
             }
         });
+
+        // NEW FUNCTION: Load user data from Firestore
+        async function loadUserData() {
+            if (!currentUser) return;
+            
+            try {
+                const userDoc = await db.collection('users').doc(currentUser.uid).get();
+                
+                if (userDoc.exists) {
+                    const userData = userDoc.data();
+                    console.log("User data loaded:", userData);
+                    
+                    // Load any user preferences or settings here
+                    if (userData.preferences) {
+                        // Apply user preferences if needed
+                    }
+                } else {
+                    // Create user document if it doesn't exist
+                    await saveUserData({
+                        email: currentUser.email,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                }
+                
+                // Load posts from Firestore via the listener
+            } catch (error) {
+                console.error("Error loading user data:", error);
+                throw error;
+            }
+        }
+
+        // NEW FUNCTION: Save user data to Firestore
+        async function saveUserData(data) {
+            if (!currentUser) return;
+            
+            try {
+                // Merge new data with existing user data
+                const userDoc = await db.collection('users').doc(currentUser.uid).get();
+                const existingData = userDoc.exists ? userDoc.data() : {};
+                const updatedData = {...existingData, ...data};
+                
+                await db.collection('users').doc(currentUser.uid).set(updatedData, { merge: true });
+                console.log("User data saved successfully");
+            } catch (error) {
+                console.error("Error saving user data:", error);
+            }
+        }
+
+        // Set up Firestore real-time listener
+        function setupFirestoreListener() {
+            if (unsubscribeListener) unsubscribeListener();
+            
+            if (!currentUser) return;
+            
+            const postsRef = db.collection('users').doc(currentUser.uid).collection('posts');
+            
+            showSyncIndicator();
+            
+            unsubscribeListener = postsRef.orderBy('date', 'desc').onSnapshot(snapshot => {
+                const updatedPosts = [];
+                
+                snapshot.forEach(doc => {
+                    updatedPosts.push(doc.data());
+                });
+                
+                // Update allPosts and display
+                allPosts = updatedPosts;
+                displayPosts(allPosts);
+                
+                // Process data for SoulMap
+                processSoulMapData();
+                
+                // Save to local storage
+                savePostsToLocal();
+                
+                hideSyncIndicator();
+            }, error => {
+                console.error('Firestore listener error:', error);
+                hideSyncIndicator();
+                
+                // Load from local storage on error
+                loadLocalPosts();
+            });
+        }
 
         // Sign in
         signInBtn.addEventListener('click', () => {
@@ -1379,8 +1420,7 @@
                         lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
                         preferences: {
                             // Add default preferences here
-                            theme: 'light',
-                            notifications: true
+                            theme: 'light'
                         }
                     });
                 })
@@ -1477,7 +1517,7 @@
             selectedMood = mood;
         }
 
-        // Create new post - UPDATED to ensure user ID is included
+        // Create new post - UPDATED to use correct user path
         function createPost() {
             const text = document.getElementById('journalText').value.trim();
             
@@ -1504,7 +1544,7 @@
             // Save to local storage
             savePostsToLocal();
             
-            // Save to Firestore if online - UPDATED to use correct user path
+            // Save to Firestore if online
             if (isOnline && currentUser) {
                 showSyncIndicator();
                 
@@ -1933,43 +1973,6 @@
             if (zoom && graphRendered) {
                 svg.transition().duration(250).call(zoom.transform, d3.zoomIdentity);
             }
-        }
-
-        // UPDATED: Set up Firestore real-time listener to use correct user path
-        function setupFirestoreListener() {
-            if (unsubscribeListener) unsubscribeListener();
-            
-            if (!currentUser) return;
-            
-            const postsRef = db.collection('users').doc(currentUser.uid).collection('posts');
-            
-            showSyncIndicator();
-            
-            unsubscribeListener = postsRef.orderBy('date', 'desc').onSnapshot(snapshot => {
-                const updatedPosts = [];
-                
-                snapshot.forEach(doc => {
-                    updatedPosts.push(doc.data());
-                });
-                
-                // Update allPosts and display
-                allPosts = updatedPosts;
-                displayPosts(allPosts);
-                
-                // Process data for SoulMap
-                processSoulMapData();
-                
-                // Save to local storage
-                savePostsToLocal();
-                
-                hideSyncIndicator();
-            }, error => {
-                console.error('Firestore listener error:', error);
-                hideSyncIndicator();
-                
-                // Load from local storage on error
-                loadLocalPosts();
-            });
         }
 
         // Switch between SoulBoard and SoulMap views
