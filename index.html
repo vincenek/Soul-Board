@@ -575,6 +575,7 @@
             text-decoration: none;
             font-weight: 500;
             cursor: pointer;
+            pointer-events: auto;
         }
 
         .auth-switch a:hover {
@@ -1052,12 +1053,6 @@
         const db = firebase.firestore();
         const auth = firebase.auth();
 
-        // Enable Firestore offline persistence
-        db.enablePersistence()
-          .catch((err) => {
-              console.log('Firestore persistence failed: ', err);
-          });
-
         // DOM Elements
         const authSection = document.getElementById('authSection');
         const journalSection = document.getElementById('journalSection');
@@ -1342,13 +1337,16 @@
             }
         }
 
-        // Set up Firestore real-time listener
+        // Set up Firestore real-time listener - UPDATED to handle initial load
         function setupFirestoreListener() {
             if (unsubscribeListener) unsubscribeListener();
             
             const postsRef = db.collection('users').doc(currentUser.uid).collection('posts');
             
             unsubscribeListener = postsRef.orderBy('date', 'desc').onSnapshot(snapshot => {
+                // Don't process initial load if we already loaded data
+                if (allPosts.length === 0) return;
+                
                 const updatedPosts = [];
                 
                 snapshot.forEach(doc => {
@@ -1366,8 +1364,6 @@
                 savePostsToLocal();
             }, error => {
                 console.error('Firestore listener error:', error);
-                // Load from local storage on error
-                loadLocalPosts();
             });
         }
 
