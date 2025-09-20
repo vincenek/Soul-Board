@@ -258,12 +258,13 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 0.8rem;
-            font-size: 0.9rem;
         }
 
         .post-date {
             color: #5C8374;
+            font-size: 0.85rem;
             font-weight: 500;
+            margin-right: 10px;
         }
 
         .post-mood {
@@ -275,6 +276,28 @@
             line-height: 1.5;
             margin: 1rem 0;
             color: #2D3E40;
+        }
+
+        .post-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .post-action-btn {
+            background: none;
+            border: none;
+            color: var(--primary);
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .post-action-btn:hover {
+            color: #1e7a6f;
         }
 
         .highlight {
@@ -1096,6 +1119,73 @@
         let svg = null;
         let zoom = null;
         let graphRendered = false;
+        let userData = {};
+
+        // NEW: Function to save user data to Firestore
+        function saveUserData() {
+            if (!currentUser) return;
+            
+            // Prepare user data to save
+            const userDataToSave = {
+                email: currentUser.email,
+                lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
+                posts: allPosts,
+                soulMapData: soulMapData,
+                // Add any other user data you want to persist
+            };
+            
+            // Save to Firestore using UID as document ID
+            db.collection("users").doc(currentUser.uid).set(userDataToSave, { merge: true })
+                .then(() => {
+                    console.log("User data successfully saved!");
+                })
+                .catch((error) => {
+                    console.error("Error saving user data: ", error);
+                });
+        }
+
+        // NEW: Function to load user data from Firestore
+        function loadUserData() {
+            if (!currentUser) return;
+            
+            showSyncIndicator("Loading your data...");
+            
+            db.collection("users").doc(currentUser.uid).get()
+                .then((doc) => {
+                    if (doc.exists) {
+                        const data = doc.data();
+                        userData = data;
+                        
+                        // Load posts if they exist
+                        if (data.posts && data.posts.length > 0) {
+                            allPosts = data.posts;
+                            displayPosts(allPosts);
+                        }
+                        
+                        // Load SoulMap data if it exists
+                        if (data.soulMapData && data.soulMapData.length > 0) {
+                            soulMapData = data.soulMapData;
+                        }
+                        
+                        // Process SoulMap data for visualization
+                        processSoulMapData();
+                        
+                        hideSyncIndicator();
+                        console.log("User data loaded successfully");
+                    } else {
+                        // No user data exists yet, initialize with empty data
+                        console.log("No existing user data found");
+                        hideSyncIndicator();
+                    }
+                })
+                .catch((error) => {
+                    console.error("Error loading user data: ", error);
+                    hideSyncIndicator();
+                    
+                    // Try to load from local storage as fallback
+                    loadLocalPosts();
+                });
+        }
 
         // PWA Installation Handling
         function handlePWAInstall() {
@@ -1253,24 +1343,18 @@
         }
 
         // Auth state listener - UPDATED to load user data
-        auth.onAuthStateChanged(async user => {
+        auth.onAuthStateChanged(user => {
             if (user) {
                 currentUser = user;
                 userEmail.textContent = user.email;
                 authSection.style.display = 'none';
                 journalSection.style.display = 'block';
                 
-                try {
-                    // Load user data from Firestore
-                    await loadUserData();
-                    
-                    // Set up real-time listener
-                    setupFirestoreListener();
-                } catch (error) {
-                    console.error("Error loading user data:", error);
-                    // Fall back to local data if there's an error
-                    loadLocalPosts();
-                }
+                // Load user data from Firestore
+                loadUserData();
+                
+                // Set up real-time listener
+                setupFirestoreListener();
             } else {
                 currentUser = null;
                 authSection.style.display = 'block';
@@ -1285,59 +1369,9 @@
             }
         });
 
-        // NEW FUNCTION: Load user data from Firestore
-        async function loadUserData() {
-            if (!currentUser) return;
-            
-            try {
-                const userDoc = await db.collection('users').doc(currentUser.uid).get();
-                
-                if (userDoc.exists) {
-                    const userData = userDoc.data();
-                    console.log("User data loaded:", userData);
-                    
-                    // Load any user preferences or settings here
-                    if (userData.preferences) {
-                        // Apply user preferences if needed
-                    }
-                } else {
-                    // Create user document if it doesn't exist
-                    await saveUserData({
-                        email: currentUser.email,
-                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                        lastLogin: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                }
-                
-                // Load posts from Firestore via the listener
-            } catch (error) {
-                console.error("Error loading user data:", error);
-                throw error;
-            }
-        }
-
-        // NEW FUNCTION: Save user data to Firestore
-        async function saveUserData(data) {
-            if (!currentUser) return;
-            
-            try {
-                // Merge new data with existing user data
-                const userDoc = await db.collection('users').doc(currentUser.uid).get();
-                const existingData = userDoc.exists ? userDoc.data() : {};
-                const updatedData = {...existingData, ...data};
-                
-                await db.collection('users').doc(currentUser.uid).set(updatedData, { merge: true });
-                console.log("User data saved successfully");
-            } catch (error) {
-                console.error("Error saving user data:", error);
-            }
-        }
-
         // Set up Firestore real-time listener
         function setupFirestoreListener() {
             if (unsubscribeListener) unsubscribeListener();
-            
-            if (!currentUser) return;
             
             const postsRef = db.collection('users').doc(currentUser.uid).collection('posts');
             
@@ -1359,6 +1393,9 @@
                 
                 // Save to local storage
                 savePostsToLocal();
+                
+                // NEW: Save user data to Firestore
+                saveUserData();
                 
                 hideSyncIndicator();
             }, error => {
@@ -1412,16 +1449,13 @@
             }
             
             auth.createUserWithEmailAndPassword(email, password)
-                .then(async (userCredential) => {
-                    // Create user document in Firestore with additional data
-                    await db.collection('users').doc(userCredential.user.uid).set({
+                .then((userCredential) => {
+                    // Create user document in Firestore with UID as document ID
+                    return db.collection('users').doc(userCredential.user.uid).set({
                         email: email,
                         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                        lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
-                        preferences: {
-                            // Add default preferences here
-                            theme: 'light'
-                        }
+                        posts: [],
+                        soulMapData: []
                     });
                 })
                 .catch(error => {
@@ -1429,8 +1463,10 @@
                 });
         });
 
-        // Logout
+        // Logout - UPDATED to save user data before logging out
         logoutBtn.addEventListener('click', () => {
+            // Save user data before logging out
+            saveUserData();
             auth.signOut();
         });
 
@@ -1499,6 +1535,8 @@
                 batch.commit()
                     .then(() => {
                         console.log('Local changes synced to Firestore');
+                        // NEW: Save updated user data
+                        saveUserData();
                         hideSyncIndicator();
                     })
                     .catch(error => {
@@ -1517,7 +1555,7 @@
             selectedMood = mood;
         }
 
-        // Create new post - UPDATED to use correct user path
+        // Create new post - UPDATED to save user data
         function createPost() {
             const text = document.getElementById('journalText').value.trim();
             
@@ -1530,8 +1568,7 @@
                 id: Date.now().toString(),
                 text: text,
                 mood: selectedMood,
-                date: Date.now(),
-                userId: currentUser.uid // Ensure post is associated with user
+                date: Date.now()
             };
 
             // Add to local array immediately for responsive UI
@@ -1543,6 +1580,9 @@
             
             // Save to local storage
             savePostsToLocal();
+            
+            // NEW: Save user data to Firestore
+            saveUserData();
             
             // Save to Firestore if online
             if (isOnline && currentUser) {
@@ -1636,7 +1676,7 @@
             feed.innerHTML = html;
         }
 
-        // Process data for SoulMap visualization
+        // Process data for SoulMap visualization - UPDATED to save user data
         function processSoulMapData() {
             soulMapData = allPosts.map(post => {
                 // Categorize posts based on content and mood
@@ -1667,6 +1707,9 @@
                     keywords: keywords
                 };
             });
+            
+            // NEW: Save updated user data
+            saveUserData();
             
             // If we're on the SoulMap view, update the visualization
             if (soulmapView.classList.contains('active')) {
@@ -2025,7 +2068,7 @@
             toast.style.backgroundColor = 'var(--primary)';
             toast.style.color = 'white';
             toast.style.padding = '10px 20px';
-            toast.style.borderRadius = '30px';
+            toast.style.borrow-radius: '30px';
             toast.style.zIndex = '1000';
             toast.style.boxShadow = '0 2px 10px rgba(0,0,0,0.2)';
             document.body.appendChild(toast);
