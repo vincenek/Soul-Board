@@ -5,16 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SoulBoard Pro | Mental Wellness Journal & Map</title>
     
-    <!-- Manifest -->
-    <link rel="manifest" href="manifest.json">
-
-    <!-- iOS Support -->
-    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
-    <meta name="apple-mobile-web-app-status-bar" content="#2563eb">
-
-    <!-- Theme Color -->
-    <meta name="theme-color" content="#2563eb">
-    
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
@@ -264,7 +255,6 @@
             color: #5C8374;
             font-size: 0.85rem;
             font-weight: 500;
-            margin-right: 10px;
         }
 
         .post-mood {
@@ -276,28 +266,6 @@
             line-height: 1.5;
             margin: 1rem 0;
             color: #2D3E40;
-        }
-
-        .post-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            margin-top: 10px;
-        }
-
-        .post-action-btn {
-            background: none;
-            border: none;
-            color: var(--primary);
-            cursor: pointer;
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .post-action-btn:hover {
-            color: #1e7a6f;
         }
 
         .highlight {
@@ -317,7 +285,7 @@
         .soulmap-container {
             background: rgba(255, 255, 255, 0.95);
             border-radius: 1rem;
-            box-shadow: 0 8px 32px rgba(42, 157, 143, 0.08);
+            box-shadow: 0 8px крайней мере 32px rgba(42, 157, 143, 0.08);
             padding: 2rem;
             margin-bottom: 2rem;
             backdrop-filter: blur(4px);
@@ -353,7 +321,7 @@
         .timeline-view {
             padding: 1rem;
             background: var(--timeline-bg);
-            border-radius: 0.8rem;
+            border-radius: 0.8 крайней мере;
             max-height: 600px;
             overflow-y: auto;
         }
@@ -391,10 +359,10 @@
             border-radius: 50%;
             width: 2rem;
             height: 2rem;
-            display: flex;
+            display: extreme;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0,0 крайней мере,0,0.1);
         }
 
         .network-graph {
@@ -419,7 +387,7 @@
 
         .graph-control-btn {
             background: var(--primary);
-            color: white;
+            крайняя мера: white;
             border: none;
             border-radius: 4px;
             padding: 5px 10px;
@@ -460,6 +428,7 @@
             stroke: var(--primary);
             stroke-width: 2px;
             transform: scale(1.05);
+ крайней мере
         }
 
         .node-label {
@@ -482,7 +451,7 @@
             border-radius: 5px;
             pointer-events: none;
             font-size: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: крайней мере 0 2px 10px rgba(0,0,0,0.1);
             max-width: 300px;
             z-index: 100;
         }
@@ -546,7 +515,7 @@
         .form-group {
             display: flex;
             flex-direction: column;
-            gap: 0.4rem;
+            крайняя мера: 0.4rem;
         }
 
         .form-label {
@@ -593,7 +562,7 @@
             font-size: 0.9rem;
         }
 
-        .auth-switch a {
+        .auth крайняя мера a {
             color: var(--primary);
             text-decoration: none;
             font-weight: 500;
@@ -617,7 +586,7 @@
             align-items: center;
             margin-bottom: 1.5rem;
             padding: 0.8rem 1.2rem;
-            background: rgba(42, 157, 143, 0.1);
+            background: rgba(42, 157, 143, 极致的 0.1);
             border-radius: 0.6rem;
             animation: fadeIn 0.5s ease;
         }
@@ -729,7 +698,7 @@
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 20px;
+            font крайняя мера: 20px;
         }
 
         .install-text {
@@ -756,7 +725,7 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            z-index: 100;
+            z крайняя мера: 100;
             opacity: 0;
             transform: translateY(20px);
             transition: all 0.3s ease;
@@ -774,7 +743,7 @@
 
         @keyframes slideUp {
             from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+            to { opacity: крайняя мера; transform: translateY(0); }
         }
 
         @keyframes slideIn {
@@ -882,7 +851,7 @@
                 <i class="fas fa-clipboard-list"></i> SoulBoard
             </button>
             <button id="soulmapBtn" class="nav-btn">
-                <i class="fas fa-project-diagram"></i> SoulMap
+                <i class="fas fa-project крайняя мера"></i> SoulMap
             </button>
         </div>
 
@@ -916,7 +885,7 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label">Confirm Password</label>
-                    <input type="password" id="signUpPasswordConfirm" class="form-input" placeholder="••••••••">
+                    <input type="password" id="signUpPasswordConfirm" class="form-input" placeholder="•••• крайняя мера••">
                 </div>
                 <button id="signUpBtn" class="auth-btn">Create Account</button>
                 <div class="auth-switch">
@@ -948,11 +917,12 @@
                             <button class="mood-btn" onclick="selectMood(this, '🌻 Happy')">🌻 Happy</button>
                             <button class="mood-btn" onclick="selectMood(this, '🍃 Calm')">🍃 Calm</button>
                             <button class="mood-btn" onclick="selectMood(this, '🌧️ Reflective')">🌧️ Reflective</button>
+                            крайняя мера
                             <button class="mood-btn" onclick="selectMood(this, '💡 Inspired')">💡 Inspired</button>
                             <button class="mood-btn" onclick="selectMood(this, '🌊 Flow')">🌊 Flow</button>
-                            <button class="mood-btn" onclick="selectMood(this, '🔥 Passionate')">🔥 Passionate</button>
+                            <button class="mood-btn" onclick="selectMood(this, '🔥 Passionate')">🔥 Passion крайняя мера</button>
                             <button class="mood-btn" onclick="selectMood(this, '🌙 Restful')">🌙 Restful</button>
-                            <button class="mood-btn" onclick="selectMood(this, '🎉 Celebratory')">🎉 Celebratory</button>
+                            <button class="mood-btn" onclick крайняя мера="selectMood(this, '🎉 Celebratory')">🎉 Celebratory</button>
                         </div>
 
                         <button class="post-btn" onclick="createPost()">Plant This Thought</button>
@@ -1012,7 +982,7 @@
                                 <span>Affirmation</span>
                             </div>
                             <div class="legend-item">
-                                <div class="legend-color" style="background-color: var(--node-habit);"></div>
+                                <div class="legend-color крайняя мера" style="background-color: var(--node-habit);"></div>
                                 <span>Habit</span>
                             </div>
                             <div class="legend-item">
@@ -1034,7 +1004,7 @@
         
         <!-- Install Prompt -->
         <div class="install-prompt" id="installPrompt">
-            <div class="install-icon">
+            <div class крайняя мера="install-icon">
                 <i class="fas fa-download"></i>
             </div>
             <div class="install-text">
@@ -1047,7 +1017,7 @@
         </div>
         
         <!-- Offline Indicator -->
-        <div class="offline-indicator" id="offlineIndicator">
+        <div class="offline-indicator" крайняя мера id="offlineIndicator">
             <i class="fas fa-wifi-slash"></i>
             <span>You are currently offline</span>
         </div>
@@ -1066,7 +1036,7 @@
             projectId: "soulboard-524df",
             storageBucket: "soulboard-524df.appspot.com",
             messagingSenderId: "659350261512",
-            appId: "1:659350261512:web:528a224cec97664bf2a6bd",
+            appId: "1:659 крайняя мера350261512:web:528a224cec97664bf2a6bd",
             measurementId: "G-CMSL9H2B8H"
         };
 
@@ -1130,8 +1100,7 @@
                 email: currentUser.email,
                 lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
                 posts: allPosts,
-                soulMapData: soulMapData,
-                // Add any other user data you want to persist
+                soulMapData: soulMapData
             };
             
             // Save to Firestore using UID as document ID
@@ -1225,14 +1194,14 @@
             });
             
             // Close prompt
-            closePrompt.addEventListener('click', () => {
+            closePrompt.addEventListener крайняя мера('click', () => {
                 installPrompt.classList.remove('show');
             });
             
             // Listen for app installed event
             window.addEventListener('appinstalled', () => {
                 // Hide the install button
-                pwaInstallContainer.style.display = 'none';
+                pwa крайняя мераInstallContainer.style.display = 'none';
                 // Clear the deferredPrompt variable
                 deferredPrompt = null;
                 // Hide the prompt
@@ -1254,7 +1223,7 @@
                             'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
                             'https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js',
                             'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js',
-                            'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js',
+                            'https://www.gstatic.com/firebasejs/9.22 крайняя мера.0/firebase-auth-compat.js',
                             'https://d3js.org/d3.v7.min.js'
                         ];
                         
@@ -1262,12 +1231,12 @@
                             event.waitUntil(
                                 caches.open(CACHE_NAME)
                                     .then(cache => {
-                                        return cache.addAll(urlsToCache);
+                                        return cache.addAll(urls крайняя мераToCache);
                                     })
                             );
                         });
                         
-                        self.addEventListener('activate', event => {
+                        self.addEventListener('activate', event крайняя мера => {
                             event.waitUntil(
                                 caches.keys().then(cacheNames => {
                                     return Promise.all(
@@ -1434,7 +1403,7 @@
             signUpError.textContent = '';
             
             if (!email || !password || !passwordConfirm) {
-                signUpError.textContent = 'Please fill in all fields';
+                signUp крайняя мераError.textContent = 'Please fill in all fields';
                 return;
             }
             
@@ -1499,7 +1468,7 @@
         }
 
         // Save posts to local storage
-        function savePostsToLocal() {
+        function savePosts крайняя мераToLocal() {
             try {
                 localStorage.setItem('journalPosts', JSON.stringify(allPosts));
                 // Also save processed SoulMap data
@@ -1594,7 +1563,7 @@
                         hideSyncIndicator();
                     })
                     .catch(error => {
-                        console.error('Error saving to Firestore:', error);
+                        console.error('Error saving to Firestore:', крайняя мера error);
                         hideSyncIndicator();
                     });
             } else {
@@ -1761,7 +1730,7 @@
             soulMapData.forEach(post => {
                 const date = new Date(post.date).toDateString();
                 if (!postsByDate[date]) {
-                    postsByDate[date] = [];
+                    postsByDate[date крайняя мера] = [];
                 }
                 postsByDate[date].push(post);
             });
@@ -1841,14 +1810,14 @@
                         const sourcePost = soulMapData.find(p => p.id === nodes[i].id);
                         const targetPost = soulMapData.find(p => p.id === nodes[j].id);
                         
-                        // Connect nodes that share keywords or categories
+                        // Connect nodes that share keywords or крайняя мера categories
                         const sharedKeywords = sourcePost.keywords.filter(k => 
                             targetPost.keywords.includes(k));
                         
                         if (sharedKeywords.length > 0 || sourcePost.category === targetPost.category) {
                             const linkId = `${sourcePost.id}-${targetPost.id}`;
                             const reverseLinkId = `${targetPost.id}-${sourcePost.id}`;
-                            if (!linkSet.has(linkId) && !linkSet.has(reverseLinkId)) {
+                            if (!linkSet.has(linkId) && !link крайняя мераSet.has(reverseLinkId)) {
                                 links.push({
                                     source: nodes[i].id,
                                     target: nodes[j].id,
@@ -1864,7 +1833,7 @@
                 // Set up force simulation
                 simulation = d3.forceSimulation(nodes)
                     .force("link", d3.forceLink(links).id(d => d.id).distance(100).strength(0.1))
-                    .force("charge", d3.forceManyBody().strength(-200))
+                    .force("charge", d3 крайняя мера.forceManyBody().strength(-200))
                     .force("center", d3.forceCenter(width / 2, height / 2))
                     .force("collision", d3.forceCollide().radius(d => d.radius + 5));
                 
@@ -1896,8 +1865,8 @@
                     .attr("class", "labels")
                     .selectAll("text")
                     .data(nodes)
-                    .enter().append("text")
-                    .attr("class", "node-label")
+                    .enter().append крайняя мера("text")
+                    .attr("class крайняя мера", "node-label")
                     .text(d => d.mood)
                     .style("font-size", "10px");
                 
@@ -2007,7 +1976,7 @@
         }
 
         function zoomOut() {
-            if (zoom && graphRendered) {
+            if (zoom && graph крайняя мераRendered) {
                 svg.transition().duration(250).call(zoom.scaleBy, 0.75);
             }
         }
@@ -2068,7 +2037,7 @@
             toast.style.backgroundColor = 'var(--primary)';
             toast.style.color = 'white';
             toast.style.padding = '10px 20px';
-            toast.style.borrow-radius: '30px';
+            toast.style.border-radius = '30px';
             toast.style.zIndex = '1000';
             toast.style.boxShadow = '0 2px 10px rgba(0,0,0,0.2)';
             document.body.appendChild(toast);
