@@ -602,6 +602,7 @@
         .user-email {
             font-weight: 500;
             color: var(--text);
+            word-break: break-all;
         }
 
         .logout-btn {
@@ -614,6 +615,8 @@
             align-items: center;
             gap: 0.3rem;
             transition: all 0.2s ease;
+            white-space: nowrap;
+            margin-left: 10px;
         }
 
         .logout-btn:hover {
@@ -812,6 +815,16 @@
             .visualization-controls {
                 flex-direction: column;
                 align-items: center;
+            }
+            
+            .user-info {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .logout-btn {
+                align-self: flex-end;
             }
         }
 
@@ -1252,13 +1265,16 @@
             }, 2000);
         }
 
-        // Auth state listener
+        // Auth state listener - UPDATED
         auth.onAuthStateChanged(user => {
             if (user) {
                 currentUser = user;
                 userEmail.textContent = user.email;
                 authSection.style.display = 'none';
                 journalSection.style.display = 'block';
+                
+                // Load user data from Firestore
+                loadUserData();
                 
                 // Set up real-time listener
                 setupFirestoreListener();
@@ -1276,7 +1292,29 @@
             }
         });
 
-        // Set up Firestore real-time listener
+        // NEW: Load user data from Firestore
+        function loadUserData() {
+            if (!currentUser) return;
+            
+            showSyncIndicator("Loading your data...");
+            
+            // Load user profile data if needed
+            db.collection('users').doc(currentUser.uid).get()
+                .then(doc => {
+                    if (doc.exists) {
+                        const userData = doc.data();
+                        // You can use userData for profile information
+                        console.log("User data loaded:", userData);
+                    }
+                    hideSyncIndicator();
+                })
+                .catch(error => {
+                    console.error('Error loading user data:', error);
+                    hideSyncIndicator();
+                });
+        }
+
+        // Set up Firestore real-time listener - UPDATED
         function setupFirestoreListener() {
             if (unsubscribeListener) unsubscribeListener();
             
@@ -1288,7 +1326,7 @@
                 const updatedPosts = [];
                 
                 snapshot.forEach(doc => {
-                    updatedPosts.push(doc.data());
+                    updatedPosts.push({ id: doc.id, ...doc.data() });
                 });
                 
                 // Update allPosts and display
@@ -1329,7 +1367,7 @@
                 });
         });
 
-        // Sign up
+        // Sign up - UPDATED to properly create user document
         signUpBtn.addEventListener('click', () => {
             const email = document.getElementById('signUpEmail').value;
             const password = document.getElementById('signUpPassword').value;
@@ -1354,16 +1392,40 @@
             
             auth.createUserWithEmailAndPassword(email, password)
                 .then((userCredential) => {
-                    // Create user document in Firestore
+                    // Create user document in Firestore with additional fields
                     return db.collection('users').doc(userCredential.user.uid).set({
                         email: email,
-                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
+                        // Add any other user profile data here
                     });
+                })
+                .then(() => {
+                    // After creating user document, initialize any default data
+                    initializeUserData();
                 })
                 .catch(error => {
                     signUpError.textContent = error.message;
                 });
         });
+
+        // NEW: Initialize user data with default values if needed
+        function initializeUserData() {
+            if (!currentUser) return;
+            
+            // You can set up default preferences, categories, or other user data here
+            const userSettings = {
+                theme: 'light',
+                notifications: true,
+                // Add any other default settings
+            };
+            
+            db.collection('users').doc(currentUser.uid).collection('preferences').doc('settings')
+                .set(userSettings)
+                .catch(error => {
+                    console.error('Error initializing user data:', error);
+                });
+        }
 
         // Logout
         logoutBtn.addEventListener('click', () => {
@@ -1444,6 +1506,34 @@
             }
         }
 
+        // NEW: Save user data function
+        function saveUserData(data, collection = null) {
+            if (!currentUser) {
+                console.error('No user logged in');
+                return Promise.reject('No user logged in');
+            }
+            
+            let docRef;
+            if (collection) {
+                // Save to a subcollection
+                docRef = db.collection('users').doc(currentUser.uid)
+                          .collection(collection).doc(data.id || Date.now().toString());
+            } else {
+                // Save to the user document
+                docRef = db.collection('users').doc(currentUser.uid);
+            }
+            
+            return docRef.set(data, { merge: true })
+                .then(() => {
+                    console.log('User data successfully saved');
+                    return true;
+                })
+                .catch(error => {
+                    console.error('Error saving user data:', error);
+                    throw error;
+                });
+        }
+
         // Select mood
         function selectMood(button, mood) {
             document.querySelectorAll('.mood-btn').forEach(btn => {
@@ -1453,7 +1543,7 @@
             selectedMood = mood;
         }
 
-        // Create new post
+        // Create new post - UPDATED to ensure proper Firestore structure
         function createPost() {
             const text = document.getElementById('journalText').value.trim();
             
@@ -1466,7 +1556,8 @@
                 id: Date.now().toString(),
                 text: text,
                 mood: selectedMood,
-                date: Date.now()
+                date: Date.now(),
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
             };
 
             // Add to local array immediately for responsive UI
